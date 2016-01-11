@@ -80,6 +80,7 @@ describe("Garage management", () => {
     })
 
     context("Given a non-empty garage", () => {
+        const NB_VEHICLE = 5
         var garage
         beforeEach(() => {
             garage = new YsuraGarage.Garage([
@@ -87,7 +88,7 @@ describe("Garage management", () => {
                 new YsuraGarage.Level(3),
                 new YsuraGarage.Level(3)
             ])
-            for (var i = 0; i < 5; i += 1) {
+            for (var i = 0; i < NB_VEHICLE; i += 1) {
                 garage.enter(new YsuraGarage.Vehicle(YsuraGarage.Vehicle.CAR, `qwerty${i}`))
             }
         })
@@ -95,8 +96,17 @@ describe("Garage management", () => {
         it("One should be able to list the vehicles inside the garage", () => {
             let list = garage.list()
             expect(list).to.be.an('array')
-            expect(list.length).to.be.greaterThan(0)
+            expect(list.length).to.be.equal(NB_VEHICLE)
             expectValidSlot(list[0])
+        })
+
+        it("One should be able to list vehicles after a given one", () => {
+            let fullList = garage.list()
+            let offsetList = garage.list(fullList[2].vehicle.license)
+            expect(offsetList).to.be.an('array')
+            expect(offsetList.length).to.be.equal(NB_VEHICLE - 3)
+            expectValidSlot(offsetList[0])
+            expect(offsetList[0]).to.eql(fullList[3])
         })
     })
 })
