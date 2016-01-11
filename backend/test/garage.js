@@ -68,7 +68,7 @@ describe("Garage management", () => {
         it("One shouldn't be able to exit the garage more than once", () => {
             garage.enter(vehicle)
             garage.exit(vehicle.license)
-            err = garage.exit(vehicle.license)
+            let err = garage.exit(vehicle.license)
             expect(err).to.equal(YsuraGarage.ErrNotInGarage)
         })
 
