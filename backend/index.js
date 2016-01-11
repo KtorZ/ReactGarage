@@ -1,3 +1,7 @@
+// ----- Errors
+export const ErrNoMoreSpace = new Error("No more space available")
+export const ErrIllegalFree = new Error("Illegal attempt to free a slot")
+
 // ----- Garage
 export function Garage (levels) {}
 
@@ -19,19 +23,27 @@ Garage.prototype.list = function listVehicle(from) {
 }
 
 // ----- Level
-export function Level(nbSlots) {}
+export function Level(nbSlots) {
+    this.slots = []
+    for (var i = 0; i < nbSlots; i += 1) { this.slots.push(nbSlots - i) }
+}
 
 /** () -> Error | Number */
 Level.prototype.take = function take() {
-    return null
+    let slot = this.slots.pop()
+    return slot == null ? ErrNoMoreSpace : slot
 }
 
 /** Number -> Error | Number */
 Level.prototype.free = function free(slot) {
-    return null
+    let existing = this.slots.indexOf(slot)
+    return existing !== -1 ? ErrIllegalFree : this.slots.push(slot)
 }
 
 // ----- Vehicle
-export function Vehicle(type, license) {}
+export function Vehicle(type, license) {
+    this.type = type
+    this.license = license
+}
 Vehicle.CAR = "CAR"
 Vehicle.MOTORBIKE = "MOTORBIKE"
