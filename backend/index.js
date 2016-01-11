@@ -1,25 +1,48 @@
+// ----- Config
+const PAGE_SIZE = 10
+
 // ----- Errors
 export const ErrNoMoreSpace = new Error("No more space available")
 export const ErrIllegalFree = new Error("Illegal attempt to free a slot")
+export const ErrNotInGarage = new Error("Vehicle not present in the garage")
 
 // ----- Garage
-export function Garage (levels) {}
+export function Garage (levels) {
+    this.db = {}
+    this.levels = levels
+}
 
 /** Entry: { vehicle: Vehicle, spot: { place: Number, floor: Number } } */
 
 /** Vehicle -> Error | Entry */
 Garage.prototype.enter = function enterVehicle(vehicle) {
-    return null
+    let spot = this.levels.reduce((spot, level, floor) => {
+        if (spot != null) { return spot }
+        let place = level.take()
+        if (place === ErrNoMoreSpace) { return null }
+        return { floor, place  }
+    }, null)
+
+    if (spot == null) { return ErrNoMoreSpace }
+    return this.db[vehicle.license] = { vehicle, spot }
 }
 
 /** String -> Error | Vehicle */
 Garage.prototype.exit = function exitVehicle(license) {
-    return null
+    let entry = this.db[license]
+    if (entry == null) { return ErrNotInGarage }
+    let err = this.levels[entry.spot.floor].free(entry.spot.place)
+    if (err === ErrIllegalFree) { return ErrNotInGarage }
+    delete this.db[license]
+    return entry.vehicle
 }
 
 /** String -> [Entry] */
 Garage.prototype.list = function listVehicle(from) {
-    return null
+    let keys = Object.keys(this.db)
+    let fromIndex = keys.indexOf(from)
+    if (fromIndex === -1) { fromIndex = 0 }
+    return keys.map(k => this.db[k]).slice(from, from + PAGE_SIZE + 1)
 }
 
 // ----- Level
