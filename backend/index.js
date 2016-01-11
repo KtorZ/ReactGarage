@@ -1,5 +1,5 @@
 // ----- Config
-const PAGE_SIZE = 10
+const PAGE_SIZE = 2
 
 // ----- Errors
 export const ErrNoMoreSpace = new Error("No more space available")
@@ -43,8 +43,7 @@ Garage.prototype.exit = function exitVehicle(license) {
 Garage.prototype.list = function listVehicle(from) {
     let keys = Object.keys(this.db)
     let fromIndex = keys.indexOf(from)
-    if (fromIndex === -1) { fromIndex = 0 }
-    return keys.map(k => this.db[k]).slice(fromIndex, fromIndex + PAGE_SIZE + 1)
+    return keys.map(k => this.db[k]).slice(fromIndex + 1, fromIndex + PAGE_SIZE + 1)
 }
 
 // ----- Level
