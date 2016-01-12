@@ -28,7 +28,7 @@ rules:
         - 2
         - "never"
     no-duplicate-case: 2
-    no-extra-parens: 2
+    no-extra-parens: 1
     no-extra-semi: 2
     no-func-assign: 2
     no-inner-declarations: 2
