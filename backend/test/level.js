@@ -1,7 +1,7 @@
 "use strict"
 
 var expect = require('expect.js')
-var YsuraGarage = require('../YsuraGarage')
+var YsuraGarage = require('./YsuraGarage')
 
 describe("Level creation", () => {
     it("One should be able to create a level from a number of available slots", () => {

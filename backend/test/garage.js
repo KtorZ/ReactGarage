@@ -1,7 +1,7 @@
 "use strict"
 
 var expect = require('expect.js')
-var YsuraGarage = require('../YsuraGarage')
+var YsuraGarage = require('./YsuraGarage')
 
 function expectValidSlot(slot) {
     expect(slot).to.be.an('object')

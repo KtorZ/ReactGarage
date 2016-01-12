@@ -1,5 +1,5 @@
 module.exports = {
-    entry: './index.js',
+    entry: './src/index.js',
     module: {
         loaders: [{
             test: /\.js$/,
@@ -9,7 +9,7 @@ module.exports = {
     },
     resolve: { extensions: ['', '.js'] },
     output: {
-        path: '.',
+        path: './test',
         libraryTarget: 'commonjs2',
         filename: 'YsuraGarage.js'
     },
