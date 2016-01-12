@@ -73,7 +73,7 @@ describe("Garage management", () => {
         })
 
         it("One should be able to list the vehicles inside the garage", () => {
-            let list = garage.list()
+            let list = garage.list(10)
             expect(list).to.be.an('array')
             expect(list.length).to.equal(0)
         })
@@ -94,19 +94,27 @@ describe("Garage management", () => {
         })
 
         it("One should be able to list the vehicles inside the garage", () => {
-            let list = garage.list()
+            let list = garage.list(5)
             expect(list).to.be.an('array')
             expect(list.length).to.be.equal(NB_VEHICLE)
             expectValidSlot(list[0])
         })
 
         it("One should be able to list vehicles after a given one", () => {
-            let fullList = garage.list()
-            let offsetList = garage.list(fullList[2].vehicle.license)
+            let fullList = garage.list(5)
+            let offsetList = garage.list(5, fullList[2].vehicle.license)
             expect(offsetList).to.be.an('array')
             expect(offsetList.length).to.be.equal(NB_VEHICLE - 3)
             expectValidSlot(offsetList[0])
             expect(offsetList[0]).to.eql(fullList[3])
+        })
+
+        it("One should be able to list vehicle correctly after a small traffic", () => {
+            let vehicle = garage.exit('qwerty0')
+            garage.enter(vehicle)
+            let list = garage.list(5, vehicle.license)
+            expect(list).to.be.an('array')
+            expect(list.length).to.equal(0)
         })
     })
 })

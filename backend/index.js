@@ -1,6 +1,3 @@
-// ----- Config
-const PAGE_SIZE = 2
-
 // ----- Errors
 export const ErrNoMoreSpace = new Error("No more space available")
 export const ErrIllegalFree = new Error("Illegal attempt to free a slot")
@@ -40,10 +37,10 @@ Garage.prototype.exit = function exitVehicle(license) {
 }
 
 /** String -> [Entry] */
-Garage.prototype.list = function listVehicle(from) {
+Garage.prototype.list = function listVehicle(pageSize, from) {
     let keys = Object.keys(this.db)
     let fromIndex = keys.indexOf(from)
-    return keys.map(k => this.db[k]).slice(fromIndex + 1, fromIndex + PAGE_SIZE + 1)
+    return keys.map(k => this.db[k]).slice(fromIndex + 1, fromIndex + pageSize + 1)
 }
 
 // ----- Level
