@@ -1,18 +1,15 @@
 "use strict"
 
-var expect = require('expect.js')
-var YsuraGarage = require('./YsuraGarage')
-
 describe("Level creation", () => {
     it("One should be able to create a level from a number of available slots", () => {
-        let level = new YsuraGarage.Level(20)
+        let level = new Level(20)
         expect(level).to.be.ok()
     })
 
     context("Given an existing level of 3 slots", () => {
         var level
         beforeEach(() => {
-            level = new YsuraGarage.Level(3)
+            level = new Level(3)
         })
 
         it("One should be able to take one slot", () => {

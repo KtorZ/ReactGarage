@@ -1,11 +1,8 @@
 "use strict"
 
-var expect = require('expect.js')
-var YsuraGarage = require('./YsuraGarage')
-
 function expectValidSlot(slot) {
     expect(slot).to.be.an('object')
-    expect(slot.vehicle).to.be.a(YsuraGarage.Vehicle)
+    expect(slot.vehicle).to.be.a(Vehicle)
     expect(slot.spot).to.be.an('object')
     expect(slot.spot.place).to.be.a('number')
     expect(slot.spot.floor).to.be.a('number')
@@ -13,10 +10,10 @@ function expectValidSlot(slot) {
 
 describe("Garage management", () => {
     it("One should be able to create a garage from a set of levels", () => {
-        let garage = new YsuraGarage.Garage([
-                new YsuraGarage.Level(5),
-                new YsuraGarage.Level(10),
-                new YsuraGarage.Level(7)
+        let garage = new Garage([
+                new Level(5),
+                new Level(10),
+                new Level(7)
             ])
         expect(garage).to.be.ok()
     })
@@ -24,12 +21,12 @@ describe("Garage management", () => {
     context("Given an empty garage", () => {
         var garage, vehicle
         beforeEach(() => {
-            garage = new YsuraGarage.Garage([
-                new YsuraGarage.Level(3),
-                new YsuraGarage.Level(3),
-                new YsuraGarage.Level(3)
+            garage = new Garage([
+                new Level(3),
+                new Level(3),
+                new Level(3)
             ])
-            vehicle = new YsuraGarage.Vehicle(YsuraGarage.Vehicle.CAR, "qwerty")
+            vehicle = new Vehicle(Vehicle.CAR, "qwerty")
         })
 
         it("One should be able to enter in the garage", () => {
@@ -45,7 +42,7 @@ describe("Garage management", () => {
 
         it("One should be able to make the garage full", () => {
             for (var i = 0; i < 9; i += 1) {
-                let v = new YsuraGarage.Vehicle(YsuraGarage.Vehicle.MOTORBIKE, `moto${i}`)
+                let v = new Vehicle(Vehicle.MOTORBIKE, `moto${i}`)
                 let slot = garage.enter(v)
                 expectValidSlot(slot)
             }
@@ -56,7 +53,7 @@ describe("Garage management", () => {
         it("One should be able to exit the garage once entered", () => {
             garage.enter(vehicle)
             let out = garage.exit(vehicle.license)
-            expect(out).to.be.a(YsuraGarage.Vehicle)
+            expect(out).to.be.a(Vehicle)
             expect(out).to.be.eql(vehicle)
         })
 
@@ -83,13 +80,13 @@ describe("Garage management", () => {
         const NB_VEHICLE = 5
         var garage
         beforeEach(() => {
-            garage = new YsuraGarage.Garage([
-                new YsuraGarage.Level(3),
-                new YsuraGarage.Level(3),
-                new YsuraGarage.Level(3)
+            garage = new Garage([
+                new Level(3),
+                new Level(3),
+                new Level(3)
             ])
             for (var i = 0; i < NB_VEHICLE; i += 1) {
-                garage.enter(new YsuraGarage.Vehicle(YsuraGarage.Vehicle.CAR, `qwerty${i}`))
+                garage.enter(new Vehicle(Vehicle.CAR, `qwerty${i}`))
             }
         })
 
