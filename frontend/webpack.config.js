@@ -8,9 +8,9 @@ module.exports = {
             exclude: /node_modules/,
             loader: 'babel'
         }, {
-            test: /\.css$/,
+            test: /\.sass$/,
             exclude: /node_modules/,
-            loader: ExtractTextPlugin.extract('css-loader')
+            loader: ExtractTextPlugin.extract('css-loader!sass-loader?indentedSyntax')
         }]
     },
     resolve: { extensions: ['', '.js', '.jsx'] },
@@ -18,5 +18,5 @@ module.exports = {
         path: './dist',
         filename: 'bundle.js'
     },
-    plugins: [new ExtractTextPlugin("[name].css")]
+    plugins: [new ExtractTextPlugin("bundle.css")]
 }
