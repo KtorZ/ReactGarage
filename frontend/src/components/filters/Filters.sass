@@ -1,0 +1,25 @@
+@import '../../vars'
+
+.filters
+  h4
+    margin: 0.5em 0
+    font-size: 0.9em
+    text-transform: uppercase
+  ul
+    list-style: none
+    padding: 0 0 0 0.5em
+    margin: 0
+  li
+    line-height: 1.5em
+    cursor: pointer
+  li > span
+    display: inline-block
+    vertical-align: middle
+  li:before
+    content: "•"
+    padding-right: 0.25em
+    font-size: 2em
+    color: $red_dark
+    vertical-align: middle
+  li.active
+    color: $red_dark

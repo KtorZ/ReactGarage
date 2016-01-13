@@ -1,0 +1,35 @@
+@import vars
+
+body
+    font-family: Verdana
+    color: $black
+
+#wrapper
+    display: flex
+    justify-content: center
+    padding: 5em 10em
+
+#listing
+    flex-grow: 6
+
+#filtering
+    flex-grow: 4
+    max-width: 38em
+    margin-right: 1em 0 0 2em
+
+#filtering
+    #search_bar
+        display: flex
+        justify-content: center
+    .search_bar
+        max-width: 25em
+
+@media(max-width: $threshold)
+    #wrapper
+        flex-direction: column
+    #filtering
+        .search_bar
+            max-width: none
+    #filtering
+        max-width: none
+        margin: 1em 0

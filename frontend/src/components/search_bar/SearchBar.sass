@@ -1,0 +1,26 @@
+@import '../../vars'
+
+.search_bar
+  display: flex
+  padding: 0.5em
+  border-radius: 0.25em
+  background: $red-light
+  color: $red-dark
+
+.search_bar
+  *:focus
+    outline: none
+  input
+    flex-grow: 20
+    border: none
+    position: relative
+    background: none
+    left: -1.5em
+    margin-right: -1.5em
+    padding: 0 0 0 2em
+    color: $red-dark
+    font-size: 1.5em
+  span
+    flex-grow: 1
+    font-size: 1.5em
+    text-align: center
