@@ -13,7 +13,7 @@ export default React.createClass({
     },
 
     render() {
-        return (<div id='listing'>
+        return (<div className='listing'>
             <VehicleList vehicles={this.props.vehicles} />
         </div>)
     }

@@ -40,7 +40,7 @@ export default React.createClass({
     render() {
         let {levels, types, filters} = this.props
 
-        return (<div id='filtering'>
+        return (<div className='filtering'>
             <div id='search_bar'>
                 <SearchBar
                     onSearch={this.handleSearch}

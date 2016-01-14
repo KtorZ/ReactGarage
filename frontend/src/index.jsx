@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Filtering from './containers/filtering/Filtering'
 import Listing from './containers/listing/Listing'
+import Navbar from './containers/navbar/Navbar'
 import { filterEntries } from './utils/filters'
 
 import './vars.sass'
@@ -59,17 +60,22 @@ let App = React.createClass({
     },
 
     render() {
-        return (<div id='wrapper'>
-            <Filtering
-                levels={levelOptions}
-                types={typeOptions}
-                filters={this.state.filters}
-                update={s => this.setState(s) }
+        return (<div className='wrapper'>
+            <Navbar
+                title='Vehicles'
             />
-            <Listing
-                vehicles={this.getVehicleList()}
-                update={s => this.setState(s)}
-            />
+            <div className='sides'>
+                <Filtering
+                    levels={levelOptions}
+                    types={typeOptions}
+                    filters={this.state.filters}
+                    update={s => this.setState(s) }
+                />
+                <Listing
+                    vehicles={this.getVehicleList()}
+                    update={s => this.setState(s)}
+                />
+            </div>
         </div>)
     }
 })

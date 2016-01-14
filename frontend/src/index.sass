@@ -4,32 +4,52 @@ body
     font-family: Verdana
     color: $black
 
-#wrapper
+html
+    overflow-y: scroll
+    margin: 0
+    padding: 0
+
+.wrapper
     display: flex
-    justify-content: center
-    padding: 5em 10em
+    flex-direction: column
+    padding: 0 10em
 
-#listing
-    flex-grow: 6
+.wrapper
+    .sides
+        display: flex
+        justify-content: center
 
-#filtering
-    flex-grow: 4
-    max-width: 38em
-    margin-right: 1em 0 0 2em
+.navbar
+    margin-bottom: 0.5em
 
-#filtering
+.listing
+    flex-grow: 3
+    max-height: 30em
+    overflow-y: scroll
+
+.filtering
+    flex-grow: 1
+    margin-right: 2em
+
+.filtering
     #search_bar
         display: flex
         justify-content: center
-    .search_bar
-        max-width: 25em
+        max-width: 15em
 
-@media(max-width: $threshold)
-    #wrapper
+@media(max-width: $threshhold_medium)
+    .wrapper
+        padding: 0 5em
+
+@media(max-width: $threshold_small)
+    body
+        font-size: 0.9em
+    .wrapper
+        padding: 0 2em
+    .sides
         flex-direction: column
-    #filtering
-        .search_bar
+    .filtering
+        #search_bar
             max-width: none
-    #filtering
-        max-width: none
+    .filtering
         margin: 1em 0
