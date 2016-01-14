@@ -36,11 +36,11 @@ export default React.createClass({
         return(
             <div className='pager'>
                 <div className='figures'>
-                    <div>{lower}</div>
-                    <div>{upper}</div>
+                    <div>{lower+1}</div>
+                    <div>{upper+1}</div>
                 </div>
                 <div className='max'>
-                    /<span className='max-number'>{max}</span>
+                    /<span className='max-number'>{max+1}</span>
                 </div>
                 <div className='title'>
                     {title}

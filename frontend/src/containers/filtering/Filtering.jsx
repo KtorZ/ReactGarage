@@ -16,25 +16,24 @@ export default React.createClass({
             React.PropTypes.number,
             React.PropTypes.string
         ]))).isRequired,
-        update: React.PropTypes.func.isRequired
+        updateFilters: React.PropTypes.func.isRequired,
+        updateQuery: React.PropTypes.func.isRequired
 
     },
 
     handleFilter(prop, f) {
         let filter = this.props.filters[prop]
         if (filter.indexOf(f) === -1) {
-            this.props.update({
-                filters: Object.assign({}, this.props.filters, { [prop]: filter.concat(f) })
-            })
+            this.props.updateFilters(
+                Object.assign({}, this.props.filters, { [prop]: filter.concat(f) }))
             return
         }
-        this.props.update({
-            filters: Object.assign({}, this.props.filters, { [prop]: filter.filter(x => x !== f) })
-        })
+        this.props.updateFilters(
+            Object.assign({}, this.props.filters, { [prop]: filter.filter(x => x !== f) }))
     },
 
     handleSearch(query){
-        this.props.update({ query: query == null ? null : new RegExp(query) })
+        this.props.updateQuery(query == null ? null : new RegExp(query))
     },
 
     render() {

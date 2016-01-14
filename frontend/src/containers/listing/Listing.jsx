@@ -10,21 +10,25 @@ export default React.createClass({
             type: React.PropTypes.string,
             level: React.PropTypes.number
         })).isRequired,
-        update: React.PropTypes.func.isRequired
+        updateIndex: React.PropTypes.func.isRequired,
+        step: React.PropTypes.number.isRequired,
+        lower: React.PropTypes.number.isRequired,
+        max: React.PropTypes.number.isRequired
     },
 
     render() {
+        let { max, lower, step, vehicles } = this.props
         return (<div className='listing'>
             <Pager
-                lower={0}
-                upper={10}
-                max={100}
-                title='Vehicle'
-                onClickUp={ () => console.log('click up') }
-                onClickDown={ () => console.log('click down') }
+                max={max}
+                lower={lower}
+                upper={Math.min(max, lower+step-1)}
+                title='Vehicles'
+                onClickUp={() => this.props.updateIndex(lower - step)}
+                onClickDown={() => this.props.updateIndex(lower + step)}
             />
             <VehicleList
-                vehicles={this.props.vehicles}
+                vehicles={vehicles}
             />
         </div>)
     }
