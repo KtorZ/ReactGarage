@@ -23,7 +23,7 @@ describe('VehicleList', () => {
     })
 
     it('it renders a list of vehicles', () => {
-        let rows = scryRenderedDOMComponentsWithTag(component, 'tr')
+        let rows = scryRenderedDOMComponentsWithTag(component, 'div').filter(x => /row/.test(x.className))
         expect(rows).to.be.ok()
         expect(rows.length).to.equal(3)
     })
