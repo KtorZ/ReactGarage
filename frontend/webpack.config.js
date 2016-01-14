@@ -1,4 +1,5 @@
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
+var sassOptions = 'indentedSyntax=true&includePaths=' + __dirname + '/src'
 
 module.exports = {
     entry: './src/index.jsx',
@@ -10,7 +11,7 @@ module.exports = {
         }, {
             test: /\.sass$/,
             exclude: /node_modules/,
-            loader: ExtractTextPlugin.extract('css-loader!sass-loader?indentedSyntax')
+            loader: ExtractTextPlugin.extract('css-loader!sass-loader?'+sassOptions)
         }]
     },
     resolve: { extensions: ['', '.js', '.jsx'] },

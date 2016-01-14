@@ -23,5 +23,9 @@ global.newSpyHandler = function () {
 // Take care of component which import css
 require('css-modules-require-hook')({
     extensions: ['.sass'],
-    preprocessCss: data => require('node-sass').renderSync({ data }).css
+    preprocessCss: data => require('node-sass').renderSync({
+        data,
+        indentedSyntax: true,
+        includePaths: [__dirname + '/../src']
+    }).css
 })
