@@ -1,0 +1,35 @@
+@import 'vars'
+
+.handy-ui
+    display: flex
+    flex-direction: column
+    align-items: center
+    border-top: 0.2em solid $grey
+    margin: 1em 0
+
+.handy-ui
+    div
+        display: flex
+        margin: 0.25em 0
+    input, select
+        margin: 0.5em 0.5em
+        padding: 0 1em
+    .button
+        margin: 0 0.5em
+        cursor: pointer
+        padding: 0.1em
+        justify-content: center
+        line-height: 3em
+        font-variant: small-caps
+    .button:active
+        opacity: 0.7
+    span
+        margin: 0 1em
+        color: $white
+        font-weight: bold
+    .enter
+        background: $blue
+    .exit
+        background: $red-dark
+    .populate
+        background: $grey-dark
