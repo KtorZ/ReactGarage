@@ -15,19 +15,15 @@ export default React.createClass({
         toggleOption: React.PropTypes.func.isRequired
     },
 
-    toggleOption(option) {
-        this.props.toggleOption(option)
-    },
-
     render() {
-        const { title, options } = this.props
+        let { title, options } = this.props
+        let selected = this.props.selected || []
         let optsLi = options.map(o => {
-            let selected = this.props.selected || []
             let c = selected.indexOf(o.id) === -1 ? '' : 'active'
             return (<li
                 className={c}
                 key={o.id}
-                onClick={() => this.toggleOption(o.id)}>
+                onClick={() => this.props.toggleOption(o.id)}>
                 <span>{o.displayName}</span>
             </li>)
         })

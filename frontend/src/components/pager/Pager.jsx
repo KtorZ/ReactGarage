@@ -30,30 +30,29 @@ export default React.createClass({
     },
 
     render() {
-        const {lower, upper, max, title} = this.props
+        let {lower, upper, max, title} = this.props
         let classUp = this.isUpEnabled() ? 'icon enabled' : 'icon'
         let classDown = this.isDownEnabled() ? 'icon enabled' : 'icon'
-        return(
-            <div className='pager'>
-                <div className='figures'>
-                    <div>{lower+1}</div>
-                    <div>{upper+1}</div>
-                </div>
-                <div className='max'>
-                    /<span className='max-number'>{max+1}</span>
-                </div>
-                <div className='title'>
-                    {title}
-                </div>
-                <div>
-                    <span className={classUp} onClick={this.onClickUp}>
-                        <i className='fa fa-angle-up'></i>
-                    </span>
-                    <span className={classDown} onClick={this.onClickDown}>
-                        <i className='fa fa-angle-down'></i>
-                    </span>
-                </div>
+
+        return(<div className='pager'>
+            <div className='figures'>
+                <div>{lower+1}</div>
+                <div>{upper+1}</div>
             </div>
-        )
+            <div className='max'>
+                /<span className='max-number'>{max+1}</span>
+            </div>
+            <div className='title'>
+                {title}
+            </div>
+            <div>
+                <span className={classUp} onClick={this.onClickUp}>
+                    <i className='fa fa-angle-up'></i>
+                </span>
+                <span className={classDown} onClick={this.onClickDown}>
+                    <i className='fa fa-angle-down'></i>
+                </span>
+            </div>
+        </div>)
     }
 })

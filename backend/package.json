@@ -1,11 +1,11 @@
 {
-  "name": "garage.backend",
+  "name": "ysuragarage.backend",
   "version": "1.0.0",
   "description": "A mock backend for the city of Vence's garage",
   "main": "index.js",
   "scripts": {
     "test": "webpack --config webpack.test.config.js && mocha -r ./test/helper.js && rm test/YsuraGarage.js",
-    "build": "webpack"
+    "build": "webpack -p"
   },
   "repository": {
     "type": "git",

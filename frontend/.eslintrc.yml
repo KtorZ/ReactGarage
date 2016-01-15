@@ -15,6 +15,7 @@ ecmaFeatures:
     spread: true
     templateStrings: true
     jsx: true
+    experimentalObjectRestSpread: true
 
 rules:
     array-bracket-spacing:

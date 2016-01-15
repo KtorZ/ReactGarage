@@ -12,7 +12,7 @@ export default React.createClass({
     },
 
     render() {
-        const { vehicles } = this.props
+        let { vehicles } = this.props
         let vehiclesDivs = vehicles.map(v => (
             <div key={v.license} className='row'>
                 <div className='col'>{v.license}<br/>{v.type}</div>
@@ -20,10 +20,6 @@ export default React.createClass({
                 <div className='col'>Level {v.level}<br/>Slot: {v.slot}</div>
             </div>
         ))
-        return (
-            <div className='vehicle_list'>
-                {vehiclesDivs}
-            </div>
-        )
+        return (<div className='vehicle_list'>{vehiclesDivs}</div>)
     }
 })

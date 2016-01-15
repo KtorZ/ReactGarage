@@ -18,6 +18,11 @@ export default React.createClass({
 
     render() {
         let { max, lower, step, vehicles } = this.props
+
+        if (max < 0) {
+            return (<div className='listing'></div>)
+        }
+
         return (<div className='listing'>
             <Pager
                 max={max}

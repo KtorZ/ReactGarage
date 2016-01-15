@@ -30,34 +30,48 @@ const typeOptions = [
     { id: YsuraGarage.Vehicle.MOTORBIKE, displayName: 'Motorbike' }
 ]
 
+// ----- Declare the application itself
 let App = React.createClass({
     getInitialState() {
         return {
-            entries: loadEntries(BATCH_SIZE),
+            entries: Object.assign({}, ...loadEntries()),
+            lastServerEntry: null,
             lowerIndex: 0,
             filters: { level: [], type: [] },
             query: null
         }
     },
 
+    /** () -> Boolean */
+    noFilterEnabled() {
+        return this.state.filters.level.length === 0 &&
+            this.state.filters.type.length === 0 &&
+            this.state.query == null
+    },
+
+    /** () -> [{license, type, slot, level}] */
     getVehicleList() {
         let { filters, entries, query } = this.state
         let vehicles = filterEntries(
                 Object.keys(filters).map(k => ({ prop: k, allowed: filters[k] })),
-                entries
+                Object.keys(entries).map(k => ({ license: k, ...entries[k] }))
         )
 
         if (query != null) { vehicles = vehicles.filter(x => query.test(x.license)) }
         return vehicles
     },
 
+    /** () -> () | Take care of updating the lower index and if needed, the entries as well */
     updateLowerIndex(index) {
         let state = { lowerIndex: index }
-        if (index + PAGE_SIZE >= this.getVehicleList().length) {
-            let lastEntry = this.state.entries.slice(-1)
-            let entries = loadEntries(BATCH_SIZE, lastEntry.length > 0 ? lastEntry[0].license : undefined)
-            if (entries && entries.length > 0) {
-                state = Object.assign(state, { entries: [].concat.apply(this.state.entries, entries) })
+        if (this.noFilterEnabled() && index + PAGE_SIZE >= this.getVehicleList().length) {
+            let entries = loadEntries(this.state.lastServerEntry)
+            let nbEntries = entries.length
+            if (nbEntries > 0) {
+                state = Object.assign(state, {
+                    lastServerEntry: Object.keys(entries[nbEntries - 1])[0],
+                    entries: Object.assign(this.state.entries, ...entries)
+                })
             }
         }
         this.setState(state)
@@ -66,7 +80,11 @@ let App = React.createClass({
     // ----- Handy UI
     populate() {
         populateGarage()
-        this.setState({ entries: loadEntries(BATCH_SIZE) })
+        let entries = loadEntries()
+        this.setState({
+            entries: Object.assign(this.state.entries, ...entries),
+            lastServerEntry: Object.keys(entries.slice(-1)[0])[0],
+        })
     },
 
     onEnter(license, type) {
@@ -76,11 +94,12 @@ let App = React.createClass({
             return
         }
         this.setState({
-            entries: this.state.entries.concat({
-                license: entry.vehicle.license,
-                slot: entry.spot.place,
-                type: entry.vehicle.type,
-                level: entry.spot.floor
+            entries: Object.assign(this.state.entries, {
+                [entry.vehicle.license]: {
+                    slot: entry.spot.place,
+                    type: entry.vehicle.type,
+                    level: entry.spot.floor
+                }
             })
         })
     },
@@ -91,14 +110,14 @@ let App = React.createClass({
             alert(vehicle.message)
             return
         }
-        let newEntries = loadEntries(this.state.entries.length - 1)
-        if (newEntries.length <= this.state.lowerIndex + PAGE_SIZE) {
-            this.setState({ entries: newEntries, lowerIndex: Math.max(this.state.lowerIndex - PAGE_SIZE, 0)})
-            console.log(this.state.lowerIndex)
+        let entries = this.state.entries
+        delete entries[license]
+
+        if (entries.length <= this.state.lowerIndex + PAGE_SIZE) {
+            this.setState({ entries: entries, lowerIndex: Math.max(this.state.lowerIndex - PAGE_SIZE, 0)})
             return
         }
-        console.log(this.state.lowerIndex)
-        this.setState({ entries: newEntries })
+        this.setState({ entries: entries })
     },
     // -----
 
@@ -115,14 +134,14 @@ let App = React.createClass({
                     types={typeOptions}
                     filters={this.state.filters}
                     updateFilters={filters => this.setState({ filters, lowerIndex: 0 })}
-                    updateQuery={query => this.setState({ query })}
+                    updateQuery={query => this.setState({ query, lowerIndex: 0 })}
                 />
                 <Listing
                     vehicles={vehicles.slice(lowerIndex, lowerIndex + PAGE_SIZE)}
                     lower={lowerIndex}
                     step={PAGE_SIZE}
                     max={vehicles.length-1}
-                    updateIndex={i => this.updateLowerIndex(i)}
+                    updateIndex={this.updateLowerIndex}
                 />
             </div>
             <HandyUI
@@ -140,12 +159,13 @@ ReactDOM.render(<App />, document.getElementById("app"))
 
 // ----- Define helpers for the 'backend'
 
-function loadEntries(batch, from) {
-    return garage.list(batch, from).map(e => ({
-        license: e.vehicle.license,
-        slot: e.spot.place,
-        type: e.vehicle.type,
-        level: e.spot.floor
+function loadEntries(from) {
+    return garage.list(BATCH_SIZE, from).map(e => ({
+        [e.vehicle.license]: {
+            slot: e.spot.place,
+            type: e.vehicle.type,
+            level: e.spot.floor
+        }
     }))
 }
 

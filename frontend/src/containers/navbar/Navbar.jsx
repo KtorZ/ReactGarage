@@ -7,11 +7,9 @@ export default React.createClass({
     },
 
     render() {
-        return (
-            <div className='navbar'>
-                <span className='icon'><i className='fa fa-bars'></i></span>
-                <span className='title'>{this.props.title}</span>
-            </div>
-        )
+        return (<div className='navbar'>
+            <span className='icon'><i className='fa fa-bars'></i></span>
+            <span className='title'>{this.props.title}</span>
+        </div>)
     }
 })

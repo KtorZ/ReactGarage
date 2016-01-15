@@ -17,11 +17,9 @@ export default React.createClass({
     },
 
     render() {
-        return (
-            <div className='search_bar'>
-                <span className='icon'><i className='fa fa-search'></i></span>
-                <input type='search' onChange={this.handleSubmit} />
-            </div>
-        )
+        return (<div className='search_bar'>
+            <span className='icon'><i className='fa fa-search'></i></span>
+            <input type='search' onChange={this.handleSubmit} />
+        </div>)
     }
 })
