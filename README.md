@@ -1,5 +1,5 @@
-Ysura Garage Assignment
-=======================
+React showcase: Multi-level garage
+==================================
 
 The repository is split in two (though unbalanced) parts:
 

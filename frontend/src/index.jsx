@@ -15,19 +15,19 @@ const PAGE_SIZE = 10
 // ----- Initialize 'backend'
 
 let levels = [
-    new YsuraGarage.Level(10),
-    new YsuraGarage.Level(20),
-    new YsuraGarage.Level(30),
-    new YsuraGarage.Level(40),
-    new YsuraGarage.Level(50)
+    new ReactGarage.Level(10),
+    new ReactGarage.Level(20),
+    new ReactGarage.Level(30),
+    new ReactGarage.Level(40),
+    new ReactGarage.Level(50)
 ]
 
-let garage = new YsuraGarage.Garage(levels)
+let garage = new ReactGarage.Garage(levels)
 
 const levelOptions = levels.map((_, i) => ({ id: i, displayName: `Level ${i}`}))
 const typeOptions = [
-    { id: YsuraGarage.Vehicle.CAR, displayName: 'Car' },
-    { id: YsuraGarage.Vehicle.MOTORBIKE, displayName: 'Motorbike' }
+    { id: ReactGarage.Vehicle.CAR, displayName: 'Car' },
+    { id: ReactGarage.Vehicle.MOTORBIKE, displayName: 'Motorbike' }
 ]
 
 // ----- Declare the application itself
@@ -88,8 +88,8 @@ let App = React.createClass({
     },
 
     onEnter(license, type) {
-        let entry = garage.enter(new YsuraGarage.Vehicle(type, license))
-        if (entry === YsuraGarage.ErrNoMoreSpace || entry === YsuraGarage.ErrAlreadyInGarage) {
+        let entry = garage.enter(new ReactGarage.Vehicle(type, license))
+        if (entry === ReactGarage.ErrNoMoreSpace || entry === ReactGarage.ErrAlreadyInGarage) {
             alert(entry.message)
             return
         }
@@ -106,7 +106,7 @@ let App = React.createClass({
 
     onExit(license) {
         let vehicle = garage.exit(license)
-        if (vehicle === YsuraGarage.ErrNotInGarage) {
+        if (vehicle === ReactGarage.ErrNotInGarage) {
             alert(vehicle.message)
             return
         }
@@ -172,13 +172,13 @@ function loadEntries(from) {
 function populateGarage() {
     let vehicles = []
     for (var i = 0; i < 140; i += 1) {
-        let type = YsuraGarage.Vehicle[Math.random() > 0.5 ? 'CAR' : 'MOTORBIKE']
+        let type = ReactGarage.Vehicle[Math.random() > 0.5 ? 'CAR' : 'MOTORBIKE']
         var license = ""
         for (var j = 0; j < 10; j += 1) {
             license += String.fromCharCode(Math.floor(Math.random() * 50) + 65) // Very artificial
         }
 
-        vehicles.push(new YsuraGarage.Vehicle(type, license))
+        vehicles.push(new ReactGarage.Vehicle(type, license))
     }
     vehicles.forEach(v => garage.enter(v))
 }

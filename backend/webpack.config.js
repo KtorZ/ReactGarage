@@ -10,9 +10,9 @@ module.exports = {
     resolve: { extensions: ['', '.js'] },
     output: {
         path: './dist',
-        library: 'YsuraGarage',
+        library: 'ReactGarage',
         libraryTarget: 'var',
-        filename: 'YsuraGarage.js'
+        filename: 'reactgarage.js'
     },
     target: 'web'
 }

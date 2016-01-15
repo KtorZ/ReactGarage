@@ -1,7 +1,7 @@
 {
-  "name": "ysuragarage.frontend",
+  "name": "reactgarage.frontend",
   "version": "1.0.0",
-  "description": "A simple frontend app for the city of Vence's garage",
+  "description": "A simple frontend app for the garage",
   "main": "index.js",
   "scripts": {
     "test": "find . -name *.spec.js | xargs mocha --compilers js:babel-core/register -r test/helper.js",

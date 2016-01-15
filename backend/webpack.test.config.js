@@ -11,7 +11,7 @@ module.exports = {
     output: {
         path: './test',
         libraryTarget: 'commonjs2',
-        filename: 'YsuraGarage.js'
+        filename: 'reactgarage.js'
     },
     target: 'node'
 }

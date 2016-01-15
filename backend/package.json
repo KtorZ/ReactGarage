@@ -1,15 +1,15 @@
 {
-  "name": "ysuragarage.backend",
+  "name": "reactgarage.backend",
   "version": "1.0.0",
-  "description": "A mock backend for the city of Vence's garage",
+  "description": "A mock backend for the garage",
   "main": "index.js",
   "scripts": {
-    "test": "webpack --config webpack.test.config.js && mocha -r ./test/helper.js && rm test/YsuraGarage.js",
+    "test": "webpack --config webpack.test.config.js && mocha -r ./test/helper.js && rm test/reactgarage.js",
     "build": "webpack -p"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/KtorZ/Ysura.git"
+    "url": "git+ssh://git@github.com/KtorZ/ReactGarage.git"
   },
   "author": "Matthias Benkort",
   "license": "MIT",

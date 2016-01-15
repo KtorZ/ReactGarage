@@ -1,5 +1,5 @@
-global.YsuraGarage = require('./YsuraGarage')
+global.ReactGarage = require('./reactgarage')
 global.expect = require('expect.js')
-global.Vehicle = YsuraGarage.Vehicle
-global.Level = YsuraGarage.Level
-global.Garage = YsuraGarage.Garage
+global.Vehicle = ReactGarage.Vehicle
+global.Level = ReactGarage.Level
+global.Garage = ReactGarage.Garage

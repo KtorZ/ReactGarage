@@ -37,7 +37,7 @@ describe("Garage management", () => {
         it("One shouldn't be able to enter the garage if already entered", () => {
             garage.enter(vehicle)
             let err = garage.enter(vehicle)
-            expect(err).to.equal(YsuraGarage.ErrAlreadyInGarage)
+            expect(err).to.equal(ReactGarage.ErrAlreadyInGarage)
         })
 
         it("One should be able to make the garage full", () => {
@@ -47,7 +47,7 @@ describe("Garage management", () => {
                 expectValidSlot(slot)
             }
             let err = garage.enter(vehicle)
-            expect(err).to.equal(YsuraGarage.ErrNoMoreSpace)
+            expect(err).to.equal(ReactGarage.ErrNoMoreSpace)
         })
 
         it("One should be able to exit the garage once entered", () => {
@@ -59,14 +59,14 @@ describe("Garage management", () => {
 
         it("One shouldn't be able to exit the garage if not entered", () => {
             let err = garage.exit(vehicle.license)
-            expect(err).to.equal(YsuraGarage.ErrNotInGarage)
+            expect(err).to.equal(ReactGarage.ErrNotInGarage)
         })
 
         it("One shouldn't be able to exit the garage more than once", () => {
             garage.enter(vehicle)
             garage.exit(vehicle.license)
             let err = garage.exit(vehicle.license)
-            expect(err).to.equal(YsuraGarage.ErrNotInGarage)
+            expect(err).to.equal(ReactGarage.ErrNotInGarage)
         })
 
         it("One should be able to list the vehicles inside the garage", () => {
