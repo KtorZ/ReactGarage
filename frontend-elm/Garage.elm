@@ -5,45 +5,12 @@ import Json.Decode as Json exposing ((:=))
 import Regex
 import Dict
 
--- CONFIG
+
+----------------------------------------- CONFIG
 
 page_size: Int
 page_size = 10
 
------------------------------------------ MODEL
-
-type alias Garage =
-  { vehicles: List Vehicle
-  , places: List (Int, Int) -- (Level, Spot)
-  , query: String
-  , page: Int
-  , filters: List Int
-  }
-
-type alias Vehicle =
-  { license: String
-  , kind: String
-  , spot: Int
-  , level: Int
-  }
-
-emptyGarage : Garage
-emptyGarage =
-  { vehicles =
-    [  Vehicle "vsdfnodf" "Car" 1 0
-    ,  Vehicle "diosonpx" "Car" 2 0
-    ,  Vehicle "cmnaudg" "Motorbike" 3 1
-    ,  Vehicle "dsvcbpo" "Car" 2 1
-    ,  Vehicle "dfnmodf" "Motorbike" 1 1
-    ,  Vehicle "xcpovkn" "Motorbike" 4 0
-    ,  Vehicle "xcmvni" "Car" 3 0
-    ,  Vehicle "suifojn" "Car" 2 1
-    ]
-  , places = allPlaces
-  , query = ""
-  , page = 0
-  , filters = []
-  }
 
 allPlaces : List (Int, Int)
 allPlaces =
@@ -53,6 +20,7 @@ allPlaces =
     (List.indexedMap
       (\lvl nb -> (List.indexedMap (\i _ -> (lvl, i)) (List.repeat nb 0)))
       [10,20,30,20,10])
+
 
 filterNames : Dict.Dict Int String
 filterNames = Dict.fromList
@@ -65,16 +33,54 @@ filterNames = Dict.fromList
   ,(101,"Motorbike")
   ]
 
+
 levels : List Int
 levels =
   filterNames
     |> Dict.keys
     |> List.filter ((>) 100)
 
+
 types : List Int
 types =
   List.filter ((<=) 100) (Dict.keys filterNames)
 
+----------------------------------------- MODEL
+
+type alias Garage =
+  { vehicles: List Vehicle
+  , places: List (Int, Int) -- (Level, Slot)
+  , query: String
+  , page: Int
+  , filters: List Int
+  }
+
+
+type alias Vehicle =
+  { license: String
+  , kind: Int
+  , slot: Int
+  , level: Int
+  }
+
+
+emptyGarage : Garage
+emptyGarage =
+  { vehicles =
+    [  Vehicle "vsdfnodf" 100 1 0
+    ,  Vehicle "diosonpx" 100 2 0
+    ,  Vehicle "cmnaudg" 101 3 1
+    ,  Vehicle "dsvcbpo" 101 2 1
+    ,  Vehicle "dfnmodf" 100 1 1
+    ,  Vehicle "xcpovkn" 101 4 0
+    ,  Vehicle "xcmvni" 100 3 0
+    ,  Vehicle "suifojn" 100 2 1
+    ]
+  , places = allPlaces
+  , query = ""
+  , page = 0
+  , filters = []
+  }
 
 ----------------------------------------- UPDATE
 
@@ -82,10 +88,21 @@ type Action
   = NoOp
   | ToggleFilter Int
   | UpdateQuery String
-  | EnterVehicle String String
+  | EnterVehicle String Int
   | ExitVehicle String
   | NextPage
   | PrevPage
+
+
+nextPossible : Int -> Int -> Int -> Bool
+nextPossible nb size p =
+  p > 0
+
+
+prevPossible : Int -> Int -> Int -> Bool
+prevPossible nb size p =
+  nb // (size * (p + 1)) > 0
+
 
 update : Action -> Garage -> Garage
 update action garage =
@@ -94,11 +111,11 @@ update action garage =
     UpdateQuery q ->
       { garage | query = q }
     NextPage ->
-      if garage.page > 0
+      if nextPossible (List.length garage.vehicles) page_size garage.page
       then { garage | page = garage.page - 1 }
       else garage
     PrevPage ->
-      if List.length garage.vehicles // (page_size * (garage.page + 1)) > 0
+      if prevPossible (List.length garage.vehicles) page_size garage.page
       then { garage | page = garage.page + 1 }
       else garage
     EnterVehicle license kind ->
@@ -106,10 +123,10 @@ update action garage =
         then garage
         else let place = List.head garage.places in
           case place of
-            Just (level, spot) ->
+            Just (level, slot) ->
               { garage
               | places = List.drop 1 garage.places
-              , vehicles = (Vehicle license kind spot level)::garage.vehicles
+              , vehicles = (Vehicle license kind slot level)::garage.vehicles
               }
             Nothing ->
               garage
@@ -164,6 +181,7 @@ viewFiltering address model =
     ]
   ]
 
+
 filtersToLi : Signal.Address Action -> Garage -> Int -> Html.Html
 filtersToLi address garage filter =
   let
@@ -180,16 +198,88 @@ filtersToLi address garage filter =
 
 viewListing : Signal.Address Action -> Garage -> List Html.Html
 viewListing address model =
-  []
+  let
+      vehicles   = filterVehicles model.query model.filters model.vehicles
+      nbVehicles = List.length vehicles
+  in
+  if nbVehicles == 0
+  then
+    []
+  else
+    let
+      lowerBound = model.page * page_size + 1
+      upperBound = min nbVehicles ((model.page + 1) * page_size)
+      classUp = if prevPossible nbVehicles page_size model.page then "icon enabled" else "icon"
+      classDown = if nextPossible nbVehicles page_size model.page then "icon enabled" else "icon"
+    in
+    [ Html.div [ Html.Attributes.class "pager" ]
+      [ Html.div [ Html.Attributes.class "figures" ]
+        [ Html.div [] [ (Html.text << toString) lowerBound ]
+        , Html.div [] [ (Html.text << toString) upperBound ]
+        ]
+      , Html.div [ Html.Attributes.class "max" ]
+        [ Html.text "/"
+        , Html.span [ Html.Attributes.class "max-number" ] [(Html.text << toString) nbVehicles]
+        ]
+      , Html.div [ Html.Attributes.class "title" ] [ Html.text "Vehicles" ]
+      , Html.div []
+        [ Html.span
+          [ Html.Attributes.class classUp
+          , Html.Events.onClick address PrevPage
+          ]
+          [ Html.i [ Html.Attributes.class "fa fa-angle-up" ] [] ]
+        , Html.span
+          [ Html.Attributes.class classDown
+          , Html.Events.onClick address NextPage
+          ]
+          [ Html.i [ Html.Attributes.class "fa fa-angle-down" ] [] ]
+        ]
+      ]
+    , Html.div [ Html.Attributes.class "vehicle_list" ]
+        (List.map vehicleToDiv vehicles)
+    ]
 
-renderVehicles : List Vehicle -> List Html.Html
-renderVehicles =
-  List.map (\x -> Html.div [] [Html.text x.license, Html.text x.kind])
 
-filterVehicles: String -> List Vehicle -> List Vehicle
-filterVehicles q xs =
-  let reg = Regex.regex q in
-    List.filter ((Regex.contains reg) << .license) xs
+vehicleToDiv : Vehicle -> Html.Html
+vehicleToDiv vehicle =
+  let
+      kind = case (Dict.get vehicle.kind filterNames) of
+        Just k -> k
+        Nothing -> "Unknown"
+      level = case (Dict.get vehicle.level filterNames) of
+        Just l -> l
+        Nothing -> "Unknown"
+  in
+    Html.div [ Html.Attributes.class "row" ]
+      [ Html.div [ Html.Attributes.class "col" ]
+        [ Html.text vehicle.license
+        , Html.br [] []
+        , Html.text kind
+        ]
+      , Html.div [ Html.Attributes.class "spacer" ] []
+      , Html.div [ Html.Attributes.class "col" ]
+        [ Html.text level
+        , Html.br [] []
+        , Html.text ("Slot: " ++ (toString vehicle.slot))
+        ]
+      ]
+
+
+filterVehicles: String -> List Int -> List Vehicle -> List Vehicle
+filterVehicles query filters vehicles =
+  let
+    filterTypes = List.partition ((>) 100) filters
+    filtSearch = (Regex.contains (Regex.regex query)) << .license
+    filtLevel =
+      if List.length (fst filterTypes) == 0
+      then \v -> True
+      else flip List.member (fst filterTypes) << .level
+    filtKind =
+      if List.length (snd filterTypes) == 0
+      then \v -> True
+      else flip List.member (snd filterTypes) << .kind
+  in
+    List.foldr List.filter vehicles [filtSearch, filtLevel, filtKind]
 
 ----- HANDY-UI
 
