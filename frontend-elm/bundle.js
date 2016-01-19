@@ -10465,12 +10465,23 @@ Elm.Main.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
    var viewHandyUI = F2(function (address,model) {    return _U.list([]);});
-   var filterVehicles = F2(function (q,xs) {
-      var reg = $Regex.regex(q);
-      return A2($List.filter,function (_p0) {    return A2($Regex.contains,reg,function (_) {    return _.license;}(_p0));},xs);
+   var filterVehicles = F3(function (query,filters,vehicles) {
+      var filtSearch = function (_p0) {    return A2($Regex.contains,$Regex.regex(query),function (_) {    return _.license;}(_p0));};
+      var filterTypes = A2($List.partition,F2(function (x,y) {    return _U.cmp(x,y) > 0;})(100),filters);
+      var filtLevel = _U.eq($List.length($Basics.fst(filterTypes)),0) ? function (v) {
+         return true;
+      } : function (_p1) {
+         return A3($Basics.flip,$List.member,$Basics.fst(filterTypes),function (_) {    return _.level;}(_p1));
+      };
+      var filtKind = _U.eq($List.length($Basics.snd(filterTypes)),0) ? function (v) {
+         return true;
+      } : function (_p2) {
+         return A3($Basics.flip,$List.member,$Basics.snd(filterTypes),function (_) {    return _.kind;}(_p2));
+      };
+      return A3($List.foldr,$List.filter,vehicles,_U.list([filtSearch,filtLevel,filtKind]));
    });
-   var renderVehicles = $List.map(function (x) {    return A2($Html.div,_U.list([]),_U.list([$Html.text(x.license),$Html.text(x.kind)]));});
-   var viewListing = F2(function (address,model) {    return _U.list([]);});
+   var prevPossible = F3(function (nb,size,p) {    return _U.cmp(nb / (size * (p + 1)) | 0,0) > 0;});
+   var nextPossible = F3(function (nb,size,p) {    return _U.cmp(p,0) > 0;});
    var PrevPage = {ctor: "PrevPage"};
    var NextPage = {ctor: "NextPage"};
    var ExitVehicle = function (a) {    return {ctor: "ExitVehicle",_0: a};};
@@ -10478,6 +10489,8 @@ Elm.Main.make = function (_elm) {
    var UpdateQuery = function (a) {    return {ctor: "UpdateQuery",_0: a};};
    var ToggleFilter = function (a) {    return {ctor: "ToggleFilter",_0: a};};
    var NoOp = {ctor: "NoOp"};
+   var Vehicle = F4(function (a,b,c,d) {    return {license: a,kind: b,slot: c,level: d};});
+   var Garage = F5(function (a,b,c,d,e) {    return {vehicles: a,places: b,query: c,page: d,filters: e};});
    var filterNames = $Dict.fromList(_U.list([{ctor: "_Tuple2",_0: 0,_1: "Level 1"}
                                             ,{ctor: "_Tuple2",_0: 1,_1: "Level 2"}
                                             ,{ctor: "_Tuple2",_0: 2,_1: "Level 3"}
@@ -10488,7 +10501,7 @@ Elm.Main.make = function (_elm) {
    var levels = A2($List.filter,F2(function (x,y) {    return _U.cmp(x,y) > 0;})(100),$Dict.keys(filterNames));
    var types = A2($List.filter,F2(function (x,y) {    return _U.cmp(x,y) < 1;})(100),$Dict.keys(filterNames));
    var filtersToLi = F3(function (address,garage,filter) {
-      var displayName = function () {    var _p1 = A2($Dict.get,filter,filterNames);if (_p1.ctor === "Just") {    return _p1._0;} else {    return "";}}();
+      var displayName = function () {    var _p3 = A2($Dict.get,filter,filterNames);if (_p3.ctor === "Just") {    return _p3._0;} else {    return "";}}();
       var $class = A2($List.member,filter,garage.filters) ? "active" : "";
       return A2($Html.li,
       _U.list([$Html$Attributes.$class($class),A2($Html$Events.onClick,address,ToggleFilter(filter))]),
@@ -10522,6 +10535,108 @@ Elm.Main.make = function (_elm) {
                              _U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text("Type")]))
                                      ,A2($Html.ul,_U.list([]),A2($List.map,A2(filtersToLi,address,model),types))]))]))]);
    });
+   var vehicleToDiv = function (vehicle) {
+      var level = function () {
+         var _p4 = A2($Dict.get,vehicle.level,filterNames);
+         if (_p4.ctor === "Just") {
+               return _p4._0;
+            } else {
+               return "Unknown";
+            }
+      }();
+      var kind = function () {
+         var _p5 = A2($Dict.get,vehicle.kind,filterNames);
+         if (_p5.ctor === "Just") {
+               return _p5._0;
+            } else {
+               return "Unknown";
+            }
+      }();
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("row")]),
+      _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.$class("col")]),
+              _U.list([$Html.text(vehicle.license),A2($Html.br,_U.list([]),_U.list([])),$Html.text(kind)]))
+              ,A2($Html.div,_U.list([$Html$Attributes.$class("spacer")]),_U.list([]))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("col")]),
+              _U.list([$Html.text(level),A2($Html.br,_U.list([]),_U.list([])),$Html.text(A2($Basics._op["++"],"Slot: ",$Basics.toString(vehicle.slot)))]))]));
+   };
+   var allPlaces = A3($List.foldr,
+   F2(function (places,p) {    return A2($List.append,places,p);}),
+   _U.list([]),
+   A2($List.indexedMap,
+   F2(function (lvl,nb) {    return A2($List.indexedMap,F2(function (i,_p6) {    return {ctor: "_Tuple2",_0: lvl,_1: i};}),A2($List.repeat,nb,0));}),
+   _U.list([10,20,30,20,10])));
+   var emptyGarage = {vehicles: _U.list([A4(Vehicle,"vsdfnodf",100,1,0)
+                                        ,A4(Vehicle,"diosonpx",100,2,0)
+                                        ,A4(Vehicle,"cmnaudg",101,3,1)
+                                        ,A4(Vehicle,"dsvcbpo",101,2,1)
+                                        ,A4(Vehicle,"dfnmodf",100,1,1)
+                                        ,A4(Vehicle,"xcpovkn",101,4,0)
+                                        ,A4(Vehicle,"xcmvni",100,3,0)
+                                        ,A4(Vehicle,"suifojn",100,2,1)])
+                     ,places: allPlaces
+                     ,query: ""
+                     ,page: 0
+                     ,filters: _U.list([])};
+   var page_size = 10;
+   var update = F2(function (action,garage) {
+      var _p7 = action;
+      switch (_p7.ctor)
+      {case "NoOp": return garage;
+         case "UpdateQuery": return _U.update(garage,{query: _p7._0});
+         case "NextPage": return A3(nextPossible,$List.length(garage.vehicles),page_size,garage.page) ? _U.update(garage,{page: garage.page - 1}) : garage;
+         case "PrevPage": return A3(prevPossible,$List.length(garage.vehicles),page_size,garage.page) ? _U.update(garage,{page: garage.page + 1}) : garage;
+         case "EnterVehicle": var _p9 = _p7._0;
+           if (A2($List.member,_p9,A2($List.map,function (_) {    return _.license;},garage.vehicles))) return garage; else {
+                 var place = $List.head(garage.places);
+                 var _p8 = place;
+                 if (_p8.ctor === "Just") {
+                       return _U.update(garage,
+                       {places: A2($List.drop,1,garage.places),vehicles: A2($List._op["::"],A4(Vehicle,_p9,_p7._1,_p8._0._1,_p8._0._0),garage.vehicles)});
+                    } else {
+                       return garage;
+                    }
+              }
+         case "ExitVehicle": return _U.update(garage,{vehicles: A2($List.filter,function (x) {    return !_U.eq(x.license,_p7._0);},garage.vehicles)});
+         default: var _p10 = _p7._0;
+           return A2($List.member,_p10,garage.filters) ? _U.update(garage,
+           {filters: A2($List.filter,function (x) {    return !_U.eq(x,_p10);},garage.filters)}) : _U.update(garage,
+           {filters: A2($List._op["::"],_p10,garage.filters)});}
+   });
+   var viewListing = F2(function (address,model) {
+      var vehicles = A3(filterVehicles,model.query,model.filters,model.vehicles);
+      var nbVehicles = $List.length(vehicles);
+      if (_U.eq(nbVehicles,0)) return _U.list([]); else {
+            var classDown = A3(nextPossible,nbVehicles,page_size,model.page) ? "icon enabled" : "icon";
+            var classUp = A3(prevPossible,nbVehicles,page_size,model.page) ? "icon enabled" : "icon";
+            var upperBound = A2($Basics.min,nbVehicles,(model.page + 1) * page_size);
+            var lowerBound = model.page * page_size + 1;
+            return _U.list([A2($Html.div,
+                           _U.list([$Html$Attributes.$class("pager")]),
+                           _U.list([A2($Html.div,
+                                   _U.list([$Html$Attributes.$class("figures")]),
+                                   _U.list([A2($Html.div,_U.list([]),_U.list([function (_p11) {    return $Html.text($Basics.toString(_p11));}(lowerBound)]))
+                                           ,A2($Html.div,_U.list([]),_U.list([function (_p12) {    return $Html.text($Basics.toString(_p12));}(upperBound)]))]))
+                                   ,A2($Html.div,
+                                   _U.list([$Html$Attributes.$class("max")]),
+                                   _U.list([$Html.text("/")
+                                           ,A2($Html.span,
+                                           _U.list([$Html$Attributes.$class("max-number")]),
+                                           _U.list([function (_p13) {    return $Html.text($Basics.toString(_p13));}(nbVehicles)]))]))
+                                   ,A2($Html.div,_U.list([$Html$Attributes.$class("title")]),_U.list([$Html.text("Vehicles")]))
+                                   ,A2($Html.div,
+                                   _U.list([]),
+                                   _U.list([A2($Html.span,
+                                           _U.list([$Html$Attributes.$class(classUp),A2($Html$Events.onClick,address,PrevPage)]),
+                                           _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-angle-up")]),_U.list([]))]))
+                                           ,A2($Html.span,
+                                           _U.list([$Html$Attributes.$class(classDown),A2($Html$Events.onClick,address,NextPage)]),
+                                           _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-angle-down")]),_U.list([]))]))]))]))
+                           ,A2($Html.div,_U.list([$Html$Attributes.$class("vehicle_list")]),A2($List.map,vehicleToDiv,vehicles))]);
+         }
+   });
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("wrapper")]),
@@ -10532,52 +10647,6 @@ Elm.Main.make = function (_elm) {
                       ,A2($Html.div,_U.list([$Html$Attributes.$class("listing")]),A2(viewListing,address,model))]))
               ,A2($Html.div,_U.list([$Html$Attributes.$class("handy-ui")]),A2(viewHandyUI,address,model))]));
    });
-   var allPlaces = A3($List.foldr,
-   F2(function (places,p) {    return A2($List.append,places,p);}),
-   _U.list([]),
-   A2($List.indexedMap,
-   F2(function (lvl,nb) {    return A2($List.indexedMap,F2(function (i,_p2) {    return {ctor: "_Tuple2",_0: lvl,_1: i};}),A2($List.repeat,nb,0));}),
-   _U.list([10,20,30,20,10])));
-   var Vehicle = F4(function (a,b,c,d) {    return {license: a,kind: b,spot: c,level: d};});
-   var emptyGarage = {vehicles: _U.list([A4(Vehicle,"vsdfnodf","Car",1,0)
-                                        ,A4(Vehicle,"diosonpx","Car",2,0)
-                                        ,A4(Vehicle,"cmnaudg","Motorbike",3,1)
-                                        ,A4(Vehicle,"dsvcbpo","Car",2,1)
-                                        ,A4(Vehicle,"dfnmodf","Motorbike",1,1)
-                                        ,A4(Vehicle,"xcpovkn","Motorbike",4,0)
-                                        ,A4(Vehicle,"xcmvni","Car",3,0)
-                                        ,A4(Vehicle,"suifojn","Car",2,1)])
-                     ,places: allPlaces
-                     ,query: ""
-                     ,page: 0
-                     ,filters: _U.list([])};
-   var Garage = F5(function (a,b,c,d,e) {    return {vehicles: a,places: b,query: c,page: d,filters: e};});
-   var page_size = 10;
-   var update = F2(function (action,garage) {
-      var _p3 = action;
-      switch (_p3.ctor)
-      {case "NoOp": return garage;
-         case "UpdateQuery": return _U.update(garage,{query: _p3._0});
-         case "NextPage": return _U.cmp(garage.page,0) > 0 ? _U.update(garage,{page: garage.page - 1}) : garage;
-         case "PrevPage": return _U.cmp($List.length(garage.vehicles) / (page_size * (garage.page + 1)) | 0,0) > 0 ? _U.update(garage,
-           {page: garage.page + 1}) : garage;
-         case "EnterVehicle": var _p5 = _p3._0;
-           if (A2($List.member,_p5,A2($List.map,function (_) {    return _.license;},garage.vehicles))) return garage; else {
-                 var place = $List.head(garage.places);
-                 var _p4 = place;
-                 if (_p4.ctor === "Just") {
-                       return _U.update(garage,
-                       {places: A2($List.drop,1,garage.places),vehicles: A2($List._op["::"],A4(Vehicle,_p5,_p3._1,_p4._0._1,_p4._0._0),garage.vehicles)});
-                    } else {
-                       return garage;
-                    }
-              }
-         case "ExitVehicle": return _U.update(garage,{vehicles: A2($List.filter,function (x) {    return !_U.eq(x.license,_p3._0);},garage.vehicles)});
-         default: var _p6 = _p3._0;
-           return A2($List.member,_p6,garage.filters) ? _U.update(garage,
-           {filters: A2($List.filter,function (x) {    return !_U.eq(x,_p6);},garage.filters)}) : _U.update(garage,
-           {filters: A2($List._op["::"],_p6,garage.filters)});}
-   });
    var main = function () {
       var actions = $Signal.mailbox(NoOp);
       var garage = A3($Signal.foldp,update,emptyGarage,actions.signal);
@@ -10585,13 +10654,13 @@ Elm.Main.make = function (_elm) {
    }();
    return _elm.Main.values = {_op: _op
                              ,page_size: page_size
-                             ,Garage: Garage
-                             ,Vehicle: Vehicle
-                             ,emptyGarage: emptyGarage
                              ,allPlaces: allPlaces
                              ,filterNames: filterNames
                              ,levels: levels
                              ,types: types
+                             ,Garage: Garage
+                             ,Vehicle: Vehicle
+                             ,emptyGarage: emptyGarage
                              ,NoOp: NoOp
                              ,ToggleFilter: ToggleFilter
                              ,UpdateQuery: UpdateQuery
@@ -10599,12 +10668,14 @@ Elm.Main.make = function (_elm) {
                              ,ExitVehicle: ExitVehicle
                              ,NextPage: NextPage
                              ,PrevPage: PrevPage
+                             ,nextPossible: nextPossible
+                             ,prevPossible: prevPossible
                              ,update: update
                              ,view: view
                              ,viewFiltering: viewFiltering
                              ,filtersToLi: filtersToLi
                              ,viewListing: viewListing
-                             ,renderVehicles: renderVehicles
+                             ,vehicleToDiv: vehicleToDiv
                              ,filterVehicles: filterVehicles
                              ,viewHandyUI: viewHandyUI
                              ,main: main};
