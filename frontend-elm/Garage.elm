@@ -3,25 +3,22 @@ import Html.Events
 import Html.Attributes
 import Json.Decode as Json exposing ((:=))
 import Regex
+import Dict
 
 -- CONFIG
 
 page_size: Int
 page_size = 10
 
--- MODEL
+----------------------------------------- MODEL
 
 type alias Garage =
   { vehicles: List Vehicle
   , places: List (Int, Int) -- (Level, Spot)
   , query: String
   , page: Int
-  , filters: { level: List Int, kind: List String }
+  , filters: List Int
   }
-
-type Filter
-  = Level Int
-  | Kind String
 
 type alias Vehicle =
   { license: String
@@ -45,7 +42,7 @@ emptyGarage =
   , places = allPlaces
   , query = ""
   , page = 0
-  , filters = { level = [], kind = [] }
+  , filters = []
   }
 
 allPlaces : List (Int, Int)
@@ -57,11 +54,33 @@ allPlaces =
       (\lvl nb -> (List.indexedMap (\i _ -> (lvl, i)) (List.repeat nb 0)))
       [10,20,30,20,10])
 
--- UPDATE
+filterNames : Dict.Dict Int String
+filterNames = Dict.fromList
+  [(0,"Level 1")
+  ,(1,"Level 2")
+  ,(2,"Level 3")
+  ,(3,"Level 4")
+  ,(4,"Level 5")
+  ,(100,"Car")
+  ,(101,"Motorbike")
+  ]
+
+levels : List Int
+levels =
+  filterNames
+    |> Dict.keys
+    |> List.filter ((>) 100)
+
+types : List Int
+types =
+  List.filter ((<=) 100) (Dict.keys filterNames)
+
+
+----------------------------------------- UPDATE
 
 type Action
   = NoOp
-  | ToggleFilter Filter
+  | ToggleFilter Int
   | UpdateQuery String
   | EnterVehicle String String
   | ExitVehicle String
@@ -97,40 +116,71 @@ update action garage =
 
     ExitVehicle license ->
         { garage | vehicles = List.filter (\x -> x.license /= license) garage.vehicles }
-    ToggleFilter filter ->
-      let filters = garage.filters in
-      case filter of
-          Level lvl ->
-            if List.member lvl garage.filters.level
-            then
-              let filters = { filters | level = List.filter (\x -> x /= lvl) garage.filters.level }
-              in { garage | filters = filters }
-            else { garage | filters = { level = lvl::garage.filters.level, kind = garage.filters.kind } }
-          Kind k ->
-            if List.member k garage.filters.kind
-            then
-              let filters = { filters | kind = List.filter (\x -> x /= k) garage.filters.kind }
-              in { garage | filters = filters }
-            else { garage | filters = { kind = k::garage.filters.kind, level = garage.filters.level } }
+    ToggleFilter f ->
+      if List.member f garage.filters
+      then { garage | filters = List.filter (\x -> x /= f) garage.filters }
+      else { garage | filters = f::garage.filters }
 
--- VIEW
+----------------------------------------- VIEW
 
 view : Signal.Address Action -> Garage -> Html.Html
 view address model =
   Html.div
-  []
-  [ Html.input
-    [ Html.Attributes.placeholder "query"
-    , Html.Events.on
-      "change"
-      (Json.at ["target", "value"] Json.string)
-      (\v -> Signal.message address (UpdateQuery v))
+    [ Html.Attributes.class "wrapper" ]
+    [ Html.div [ Html.Attributes.class "navbar" ] [ Html.text "Vehicles" ]
+    , Html.div [ Html.Attributes.class "sides" ]
+        [ Html.div [ Html.Attributes.class "filtering" ] (viewFiltering address model)
+        , Html.div [ Html.Attributes.class "listing" ] (viewListing address model)
+        ]
+    , Html.div [ Html.Attributes.class "handy-ui" ] (viewHandyUI address model)
     ]
-    []
-  , Html.div
-    []
-    (renderVehicles (filterVehicles model.query model.vehicles))
+
+----- FILTERING
+
+viewFiltering : Signal.Address Action -> Garage -> List Html.Html
+viewFiltering address model =
+  [ Html.div [ Html.Attributes.id "search_bar" ]
+    [ Html.div [ Html.Attributes.class "search_bar" ]
+      [ Html.span [ Html.Attributes.class "icon" ]
+        [ Html.i [ Html.Attributes.class "fa fa-search" ] [] ]
+      , Html.input
+        [ Html.Attributes.type' "search"
+        , Html.Events.on "change"
+          (Json.at ["target", "value"] Json.string)
+          (\v -> Signal.message address (UpdateQuery v))
+        ]
+        []
+      ]
+    ]
+  , Html.div [ Html.Attributes.id "filters" ]
+    [ Html.div [ Html.Attributes.class "filters" ]
+      [ Html.h4 [] [ Html.text "Level" ]
+      ,Html.ul [] (List.map (filtersToLi address model) levels)
+      ]
+    , Html.div [ Html.Attributes.class "filters" ]
+      [ Html.h4 [] [ Html.text "Type" ]
+      ,Html.ul [] (List.map (filtersToLi address model) types)
+      ]
+    ]
   ]
+
+filtersToLi : Signal.Address Action -> Garage -> Int -> Html.Html
+filtersToLi address garage filter =
+  let
+      class = if (List.member filter garage.filters) then "active" else ""
+      displayName = case (Dict.get filter filterNames) of
+        Just name -> name
+        Nothing -> ""
+  in
+    Html.li
+      [ Html.Attributes.class class, Html.Events.onClick address (ToggleFilter filter) ]
+      [ Html.span [] [ Html.text displayName] ]
+
+----- LISTING
+
+viewListing : Signal.Address Action -> Garage -> List Html.Html
+viewListing address model =
+  []
 
 renderVehicles : List Vehicle -> List Html.Html
 renderVehicles =
@@ -141,16 +191,18 @@ filterVehicles q xs =
   let reg = Regex.regex q in
     List.filter ((Regex.contains reg) << .license) xs
 
--- WIRING
+----- HANDY-UI
+
+viewHandyUI : Signal.Address Action -> Garage -> List Html.Html
+viewHandyUI address model =
+  []
+
+----------------------------------------- WIRING
 
 main : Signal Html.Html
 main =
-  Signal.map (view actions.address) garage
-
-garage : Signal Garage
-garage =
-  Signal.foldp update emptyGarage actions.signal
-
-actions : Signal.Mailbox Action
-actions =
-  Signal.mailbox NoOp
+  let
+    actions = Signal.mailbox NoOp
+    garage = Signal.foldp update emptyGarage actions.signal
+  in
+    Signal.map (view actions.address) garage
