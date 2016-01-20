@@ -1,0 +1,13 @@
+{
+  "name": "garage.frontend.elm",
+  "version": "1.0.0",
+  "scripts": {
+      "build": "elm-make Garage.elm --output dist/bundle.elm.js && uglify -s dist/bundle.elm.js -o dist/bundle.elm.min.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/KtorZ/ReactGarage.git"
+  },
+  "author": "Matthias Benkort",
+  "license": "MIT"
+}

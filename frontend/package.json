@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "find . -name *.spec.js | xargs mocha --compilers js:babel-core/register -r test/helper.js",
-    "build": "webpack -p"
+    "build": "webpack"
   },
   "author": "Matthias Benkort",
   "license": "MIT",

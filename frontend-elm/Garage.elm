@@ -109,7 +109,7 @@ update action garage =
     NoOp -> garage
     UpdateQuery q ->
       if String.length q < 3
-      then garage
+      then { garage | query = "" }
       else { garage | query = q }
     PrevPage ->
       if prevPossible (List.length garage.vehicles) page_size garage.page
@@ -171,7 +171,12 @@ viewFiltering address model =
         [ Html.i [ Html.Attributes.class "fa fa-search" ] [] ]
       , Html.input
         [ Html.Attributes.type' "search"
-        , Html.Events.on "keyup"
+        , Html.Events.on
+          "keyup"
+          (Json.at ["target", "value"] Json.string)
+          (Signal.message address << UpdateQuery)
+        , Html.Events.on
+          "change"
           (Json.at ["target", "value"] Json.string)
           (Signal.message address << UpdateQuery)
         ]
