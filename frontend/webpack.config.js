@@ -1,3 +1,4 @@
+var webpack = require('webpack')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var sassOptions = 'indentedSyntax=true&includePaths=' + __dirname + '/src'
 
@@ -17,7 +18,10 @@ module.exports = {
     resolve: { extensions: ['', '.js', '.jsx'] },
     output: {
         path: './dist',
-        filename: 'bundle.js'
+        filename: 'bundle.react.min.js'
     },
-    plugins: [new ExtractTextPlugin("bundle.css")]
+    plugins: [
+        new ExtractTextPlugin("bundle.min.css"),
+        new webpack.optimize.UglifyJsPlugin()
+    ]
 }
