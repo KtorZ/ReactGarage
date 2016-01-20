@@ -10462,9 +10462,9 @@ Elm.Main.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Regex = Elm.Regex.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
    var _op = {};
-   var viewHandyUI = F2(function (address,model) {    return _U.list([]);});
    var filterVehicles = F3(function (query,filters,vehicles) {
       var filtSearch = function (_p0) {    return A2($Regex.contains,$Regex.regex(query),function (_) {    return _.license;}(_p0));};
       var filterTypes = A2($List.partition,F2(function (x,y) {    return _U.cmp(x,y) > 0;})(100),filters);
@@ -10480,22 +10480,24 @@ Elm.Main.make = function (_elm) {
       };
       return A3($List.foldr,$List.filter,vehicles,_U.list([filtSearch,filtLevel,filtKind]));
    });
-   var prevPossible = F3(function (nb,size,p) {    return _U.cmp(nb / (size * (p + 1)) | 0,0) > 0;});
-   var nextPossible = F3(function (nb,size,p) {    return _U.cmp(p,0) > 0;});
+   var prevPossible = F3(function (nb,size,p) {    return _U.cmp(p,0) > 0;});
+   var nextPossible = F3(function (nb,size,p) {    return _U.cmp(size * (p + 1),nb) < 0;});
+   var SetFormType = function (a) {    return {ctor: "SetFormType",_0: a};};
+   var SetFormLicense = function (a) {    return {ctor: "SetFormLicense",_0: a};};
    var PrevPage = {ctor: "PrevPage"};
    var NextPage = {ctor: "NextPage"};
-   var ExitVehicle = function (a) {    return {ctor: "ExitVehicle",_0: a};};
-   var EnterVehicle = F2(function (a,b) {    return {ctor: "EnterVehicle",_0: a,_1: b};});
+   var ExitVehicle = {ctor: "ExitVehicle"};
+   var EnterVehicle = {ctor: "EnterVehicle"};
    var UpdateQuery = function (a) {    return {ctor: "UpdateQuery",_0: a};};
    var ToggleFilter = function (a) {    return {ctor: "ToggleFilter",_0: a};};
    var NoOp = {ctor: "NoOp"};
    var Vehicle = F4(function (a,b,c,d) {    return {license: a,kind: b,slot: c,level: d};});
-   var Garage = F5(function (a,b,c,d,e) {    return {vehicles: a,places: b,query: c,page: d,filters: e};});
-   var filterNames = $Dict.fromList(_U.list([{ctor: "_Tuple2",_0: 0,_1: "Level 1"}
-                                            ,{ctor: "_Tuple2",_0: 1,_1: "Level 2"}
-                                            ,{ctor: "_Tuple2",_0: 2,_1: "Level 3"}
-                                            ,{ctor: "_Tuple2",_0: 3,_1: "Level 4"}
-                                            ,{ctor: "_Tuple2",_0: 4,_1: "Level 5"}
+   var Garage = F7(function (a,b,c,d,e,f,g) {    return {vehicles: a,places: b,query: c,page: d,filters: e,formLicense: f,formType: g};});
+   var filterNames = $Dict.fromList(_U.list([{ctor: "_Tuple2",_0: 0,_1: "Level 0"}
+                                            ,{ctor: "_Tuple2",_0: 1,_1: "Level 1"}
+                                            ,{ctor: "_Tuple2",_0: 2,_1: "Level 2"}
+                                            ,{ctor: "_Tuple2",_0: 3,_1: "Level 3"}
+                                            ,{ctor: "_Tuple2",_0: 4,_1: "Level 4"}
                                             ,{ctor: "_Tuple2",_0: 100,_1: "Car"}
                                             ,{ctor: "_Tuple2",_0: 101,_1: "Motorbike"}]));
    var levels = A2($List.filter,F2(function (x,y) {    return _U.cmp(x,y) > 0;})(100),$Dict.keys(filterNames));
@@ -10518,17 +10520,17 @@ Elm.Main.make = function (_elm) {
                              ,A2($Html.input,
                              _U.list([$Html$Attributes.type$("search")
                                      ,A3($Html$Events.on,
-                                     "change",
+                                     "keyup",
                                      A2($Json$Decode.at,_U.list(["target","value"]),$Json$Decode.string),
-                                     function (v) {
-                                        return A2($Signal.message,address,UpdateQuery(v));
+                                     function (_p4) {
+                                        return A2($Signal.message,address,UpdateQuery(_p4));
                                      })]),
                              _U.list([]))]))]))
                      ,A2($Html.div,
                      _U.list([$Html$Attributes.id("filters")]),
                      _U.list([A2($Html.div,
                              _U.list([$Html$Attributes.$class("filters")]),
-                             _U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text("Level")]))
+                             _U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text("Levels")]))
                                      ,A2($Html.ul,_U.list([]),A2($List.map,A2(filtersToLi,address,model),levels))]))
                              ,A2($Html.div,
                              _U.list([$Html$Attributes.$class("filters")]),
@@ -10537,17 +10539,17 @@ Elm.Main.make = function (_elm) {
    });
    var vehicleToDiv = function (vehicle) {
       var level = function () {
-         var _p4 = A2($Dict.get,vehicle.level,filterNames);
-         if (_p4.ctor === "Just") {
-               return _p4._0;
+         var _p5 = A2($Dict.get,vehicle.level,filterNames);
+         if (_p5.ctor === "Just") {
+               return _p5._0;
             } else {
                return "Unknown";
             }
       }();
       var kind = function () {
-         var _p5 = A2($Dict.get,vehicle.kind,filterNames);
-         if (_p5.ctor === "Just") {
-               return _p5._0;
+         var _p6 = A2($Dict.get,vehicle.kind,filterNames);
+         if (_p6.ctor === "Just") {
+               return _p6._0;
             } else {
                return "Unknown";
             }
@@ -10560,87 +10562,120 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.div,_U.list([$Html$Attributes.$class("spacer")]),_U.list([]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("col")]),
-              _U.list([$Html.text(level),A2($Html.br,_U.list([]),_U.list([])),$Html.text(A2($Basics._op["++"],"Slot: ",$Basics.toString(vehicle.slot)))]))]));
+              _U.list([$Html.text(level)
+                      ,A2($Html.br,_U.list([]),_U.list([]))
+                      ,$Html.text(A2($Basics._op["++"],"Slot: ",$Basics.toString(vehicle.slot + 1)))]))]));
    };
+   var viewHandyUI = F2(function (address,model) {
+      var onChangeSelect = function (x) {    var _p7 = $String.toInt(x);if (_p7.ctor === "Ok") {    return SetFormType(_p7._0);} else {    return NoOp;}};
+      var options = A2($List.map,
+      function (t) {
+         var kind = function () {    var _p8 = A2($Dict.get,t,filterNames);if (_p8.ctor === "Just") {    return _p8._0;} else {    return "Unknown";}}();
+         return A2($Html.option,_U.list([$Html$Attributes.value($Basics.toString(t))]),_U.list([$Html.text(kind)]));
+      },
+      types);
+      return _U.list([A2($Html.div,
+      _U.list([]),
+      _U.list([A2($Html.input,
+              _U.list([$Html$Attributes.type$("text")
+                      ,$Html$Attributes.placeholder("License")
+                      ,A3($Html$Events.on,"keyup",$Html$Events.targetValue,function (_p9) {    return A2($Signal.message,address,SetFormLicense(_p9));})]),
+              _U.list([]))
+              ,A2($Html.select,
+              _U.list([A3($Html$Events.on,"change",$Html$Events.targetValue,function (_p10) {    return A2($Signal.message,address,onChangeSelect(_p10));})]),
+              options)
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("button enter"),A2($Html$Events.onClick,address,EnterVehicle)]),
+              _U.list([A2($Html.span,
+                      _U.list([$Html$Attributes.$class("icon")]),
+                      _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-car")]),_U.list([]))]))
+                      ,A2($Html.span,_U.list([]),_U.list([$Html.text("Enter")]))]))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("button exit"),A2($Html$Events.onClick,address,ExitVehicle)]),
+              _U.list([A2($Html.span,
+                      _U.list([$Html$Attributes.$class("icon")]),
+                      _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-sign-out")]),_U.list([]))]))
+                      ,A2($Html.span,_U.list([]),_U.list([$Html.text("Exit")]))]))]))]);
+   });
    var allPlaces = A3($List.foldr,
    F2(function (places,p) {    return A2($List.append,places,p);}),
    _U.list([]),
    A2($List.indexedMap,
-   F2(function (lvl,nb) {    return A2($List.indexedMap,F2(function (i,_p6) {    return {ctor: "_Tuple2",_0: lvl,_1: i};}),A2($List.repeat,nb,0));}),
-   _U.list([10,20,30,20,10])));
-   var emptyGarage = {vehicles: _U.list([A4(Vehicle,"vsdfnodf",100,1,0)
-                                        ,A4(Vehicle,"diosonpx",100,2,0)
-                                        ,A4(Vehicle,"cmnaudg",101,3,1)
-                                        ,A4(Vehicle,"dsvcbpo",101,2,1)
-                                        ,A4(Vehicle,"dfnmodf",100,1,1)
-                                        ,A4(Vehicle,"xcpovkn",101,4,0)
-                                        ,A4(Vehicle,"xcmvni",100,3,0)
-                                        ,A4(Vehicle,"suifojn",100,2,1)])
-                     ,places: allPlaces
-                     ,query: ""
-                     ,page: 0
-                     ,filters: _U.list([])};
+   F2(function (lvl,nb) {    return A2($List.indexedMap,F2(function (i,_p11) {    return {ctor: "_Tuple2",_0: lvl,_1: i};}),A2($List.repeat,nb,0));}),
+   _U.list([1,2,3,2,1])));
+   var emptyGarage = {vehicles: _U.list([]),places: allPlaces,query: "",page: 0,filters: _U.list([]),formLicense: "",formType: 100};
    var page_size = 10;
    var update = F2(function (action,garage) {
-      var _p7 = action;
-      switch (_p7.ctor)
+      var _p12 = action;
+      switch (_p12.ctor)
       {case "NoOp": return garage;
-         case "UpdateQuery": return _U.update(garage,{query: _p7._0});
-         case "NextPage": return A3(nextPossible,$List.length(garage.vehicles),page_size,garage.page) ? _U.update(garage,{page: garage.page - 1}) : garage;
-         case "PrevPage": return A3(prevPossible,$List.length(garage.vehicles),page_size,garage.page) ? _U.update(garage,{page: garage.page + 1}) : garage;
-         case "EnterVehicle": var _p9 = _p7._0;
-           if (A2($List.member,_p9,A2($List.map,function (_) {    return _.license;},garage.vehicles))) return garage; else {
+         case "UpdateQuery": var _p13 = _p12._0;
+           return _U.cmp($String.length(_p13),3) < 0 ? garage : _U.update(garage,{query: _p13});
+         case "PrevPage": return A3(prevPossible,$List.length(garage.vehicles),page_size,garage.page) ? _U.update(garage,{page: garage.page - 1}) : garage;
+         case "NextPage": return A3(nextPossible,$List.length(garage.vehicles),page_size,garage.page) ? _U.update(garage,{page: garage.page + 1}) : garage;
+         case "EnterVehicle": if (A2($List.member,garage.formLicense,A2($List.map,function (_) {    return _.license;},garage.vehicles))) return garage; else {
                  var place = $List.head(garage.places);
-                 var _p8 = place;
-                 if (_p8.ctor === "Just") {
+                 var _p14 = place;
+                 if (_p14.ctor === "Just") {
                        return _U.update(garage,
-                       {places: A2($List.drop,1,garage.places),vehicles: A2($List._op["::"],A4(Vehicle,_p9,_p7._1,_p8._0._1,_p8._0._0),garage.vehicles)});
+                       {places: A2($List.drop,1,garage.places)
+                       ,vehicles: A2($List._op["::"],A4(Vehicle,garage.formLicense,garage.formType,_p14._0._1,_p14._0._0),garage.vehicles)});
                     } else {
                        return garage;
                     }
               }
-         case "ExitVehicle": return _U.update(garage,{vehicles: A2($List.filter,function (x) {    return !_U.eq(x.license,_p7._0);},garage.vehicles)});
-         default: var _p10 = _p7._0;
-           return A2($List.member,_p10,garage.filters) ? _U.update(garage,
-           {filters: A2($List.filter,function (x) {    return !_U.eq(x,_p10);},garage.filters)}) : _U.update(garage,
-           {filters: A2($List._op["::"],_p10,garage.filters)});}
+         case "ExitVehicle": return _U.update(garage,
+           {vehicles: A2($List.filter,function (x) {    return !_U.eq(x.license,garage.formLicense);},garage.vehicles)});
+         case "ToggleFilter": var _p15 = _p12._0;
+           return A2($List.member,_p15,garage.filters) ? _U.update(garage,
+           {filters: A2($List.filter,function (x) {    return !_U.eq(x,_p15);},garage.filters)}) : _U.update(garage,
+           {filters: A2($List._op["::"],_p15,garage.filters)});
+         case "SetFormLicense": return _U.update(garage,{formLicense: _p12._0});
+         default: return _U.update(garage,{formType: _p12._0});}
    });
    var viewListing = F2(function (address,model) {
       var vehicles = A3(filterVehicles,model.query,model.filters,model.vehicles);
       var nbVehicles = $List.length(vehicles);
       if (_U.eq(nbVehicles,0)) return _U.list([]); else {
-            var classDown = A3(nextPossible,nbVehicles,page_size,model.page) ? "icon enabled" : "icon";
-            var classUp = A3(prevPossible,nbVehicles,page_size,model.page) ? "icon enabled" : "icon";
+            var classDown = A3(prevPossible,nbVehicles,page_size,model.page) ? "icon enabled" : "icon";
+            var classUp = A3(nextPossible,nbVehicles,page_size,model.page) ? "icon enabled" : "icon";
             var upperBound = A2($Basics.min,nbVehicles,(model.page + 1) * page_size);
             var lowerBound = model.page * page_size + 1;
             return _U.list([A2($Html.div,
                            _U.list([$Html$Attributes.$class("pager")]),
                            _U.list([A2($Html.div,
                                    _U.list([$Html$Attributes.$class("figures")]),
-                                   _U.list([A2($Html.div,_U.list([]),_U.list([function (_p11) {    return $Html.text($Basics.toString(_p11));}(lowerBound)]))
-                                           ,A2($Html.div,_U.list([]),_U.list([function (_p12) {    return $Html.text($Basics.toString(_p12));}(upperBound)]))]))
+                                   _U.list([A2($Html.div,_U.list([]),_U.list([function (_p16) {    return $Html.text($Basics.toString(_p16));}(lowerBound)]))
+                                           ,A2($Html.div,_U.list([]),_U.list([function (_p17) {    return $Html.text($Basics.toString(_p17));}(upperBound)]))]))
                                    ,A2($Html.div,
                                    _U.list([$Html$Attributes.$class("max")]),
                                    _U.list([$Html.text("/")
                                            ,A2($Html.span,
                                            _U.list([$Html$Attributes.$class("max-number")]),
-                                           _U.list([function (_p13) {    return $Html.text($Basics.toString(_p13));}(nbVehicles)]))]))
+                                           _U.list([function (_p18) {    return $Html.text($Basics.toString(_p18));}(nbVehicles)]))]))
                                    ,A2($Html.div,_U.list([$Html$Attributes.$class("title")]),_U.list([$Html.text("Vehicles")]))
                                    ,A2($Html.div,
                                    _U.list([]),
                                    _U.list([A2($Html.span,
-                                           _U.list([$Html$Attributes.$class(classUp),A2($Html$Events.onClick,address,PrevPage)]),
+                                           _U.list([$Html$Attributes.$class(classUp),A2($Html$Events.onClick,address,NextPage)]),
                                            _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-angle-up")]),_U.list([]))]))
                                            ,A2($Html.span,
-                                           _U.list([$Html$Attributes.$class(classDown),A2($Html$Events.onClick,address,NextPage)]),
+                                           _U.list([$Html$Attributes.$class(classDown),A2($Html$Events.onClick,address,PrevPage)]),
                                            _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-angle-down")]),_U.list([]))]))]))]))
-                           ,A2($Html.div,_U.list([$Html$Attributes.$class("vehicle_list")]),A2($List.map,vehicleToDiv,vehicles))]);
+                           ,A2($Html.div,
+                           _U.list([$Html$Attributes.$class("vehicle_list")]),
+                           A2($List.map,vehicleToDiv,function (_p19) {    return A2($List.take,page_size,A2($List.drop,lowerBound - 1,_p19));}(vehicles)))]);
          }
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("wrapper")]),
-      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("navbar")]),_U.list([$Html.text("Vehicles")]))
+      _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.$class("navbar")]),
+              _U.list([A2($Html.span,
+                      _U.list([$Html$Attributes.$class("icon")]),
+                      _U.list([A2($Html.i,_U.list([$Html$Attributes.$class("fa fa-bars")]),_U.list([]))]))
+                      ,A2($Html.span,_U.list([$Html$Attributes.$class("title")]),_U.list([$Html.text("Vehicles")]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("sides")]),
               _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("filtering")]),A2(viewFiltering,address,model))
@@ -10668,6 +10703,8 @@ Elm.Main.make = function (_elm) {
                              ,ExitVehicle: ExitVehicle
                              ,NextPage: NextPage
                              ,PrevPage: PrevPage
+                             ,SetFormLicense: SetFormLicense
+                             ,SetFormType: SetFormType
                              ,nextPossible: nextPossible
                              ,prevPossible: prevPossible
                              ,update: update

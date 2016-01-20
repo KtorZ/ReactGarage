@@ -4,6 +4,7 @@ import Html.Attributes
 import Json.Decode as Json exposing ((:=))
 import Regex
 import Dict
+import String
 
 
 ----------------------------------------- CONFIG
@@ -19,16 +20,16 @@ allPlaces =
     []
     (List.indexedMap
       (\lvl nb -> (List.indexedMap (\i _ -> (lvl, i)) (List.repeat nb 0)))
-      [10,20,30,20,10])
+      [1,2,3,2,1])
 
 
 filterNames : Dict.Dict Int String
 filterNames = Dict.fromList
-  [(0,"Level 1")
-  ,(1,"Level 2")
-  ,(2,"Level 3")
-  ,(3,"Level 4")
-  ,(4,"Level 5")
+  [(0,"Level 0")
+  ,(1,"Level 1")
+  ,(2,"Level 2")
+  ,(3,"Level 3")
+  ,(4,"Level 4")
   ,(100,"Car")
   ,(101,"Motorbike")
   ]
@@ -43,7 +44,9 @@ levels =
 
 types : List Int
 types =
-  List.filter ((<=) 100) (Dict.keys filterNames)
+  filterNames
+    |> Dict.keys
+    |> List.filter ((<=) 100)
 
 ----------------------------------------- MODEL
 
@@ -53,6 +56,8 @@ type alias Garage =
   , query: String
   , page: Int
   , filters: List Int
+  , formLicense: String
+  , formType: Int
   }
 
 
@@ -66,20 +71,13 @@ type alias Vehicle =
 
 emptyGarage : Garage
 emptyGarage =
-  { vehicles =
-    [  Vehicle "vsdfnodf" 100 1 0
-    ,  Vehicle "diosonpx" 100 2 0
-    ,  Vehicle "cmnaudg" 101 3 1
-    ,  Vehicle "dsvcbpo" 101 2 1
-    ,  Vehicle "dfnmodf" 100 1 1
-    ,  Vehicle "xcpovkn" 101 4 0
-    ,  Vehicle "xcmvni" 100 3 0
-    ,  Vehicle "suifojn" 100 2 1
-    ]
+  { vehicles = []
   , places = allPlaces
   , query = ""
   , page = 0
   , filters = []
+  , formLicense = ""
+  , formType = 100
   }
 
 ----------------------------------------- UPDATE
@@ -88,20 +86,21 @@ type Action
   = NoOp
   | ToggleFilter Int
   | UpdateQuery String
-  | EnterVehicle String Int
-  | ExitVehicle String
+  | EnterVehicle
+  | ExitVehicle
   | NextPage
   | PrevPage
+  | SetFormLicense String
+  | SetFormType Int
 
 
 nextPossible : Int -> Int -> Int -> Bool
 nextPossible nb size p =
-  p > 0
-
+  size * (p + 1) < nb
 
 prevPossible : Int -> Int -> Int -> Bool
 prevPossible nb size p =
-  nb // (size * (p + 1)) > 0
+  p > 0
 
 
 update : Action -> Garage -> Garage
@@ -109,34 +108,40 @@ update action garage =
   case action of
     NoOp -> garage
     UpdateQuery q ->
-      { garage | query = q }
-    NextPage ->
-      if nextPossible (List.length garage.vehicles) page_size garage.page
-      then { garage | page = garage.page - 1 }
-      else garage
+      if String.length q < 3
+      then garage
+      else { garage | query = q }
     PrevPage ->
       if prevPossible (List.length garage.vehicles) page_size garage.page
+      then { garage | page = garage.page - 1 }
+      else garage
+    NextPage->
+      if nextPossible (List.length garage.vehicles) page_size garage.page
       then { garage | page = garage.page + 1 }
       else garage
-    EnterVehicle license kind ->
-        if List.member license (List.map .license garage.vehicles)
+    EnterVehicle ->
+        if List.member garage.formLicense (List.map .license garage.vehicles)
         then garage
         else let place = List.head garage.places in
           case place of
             Just (level, slot) ->
               { garage
               | places = List.drop 1 garage.places
-              , vehicles = (Vehicle license kind slot level)::garage.vehicles
+              , vehicles = (Vehicle garage.formLicense garage.formType slot level)::garage.vehicles
               }
             Nothing ->
               garage
 
-    ExitVehicle license ->
-        { garage | vehicles = List.filter (\x -> x.license /= license) garage.vehicles }
+    ExitVehicle ->
+        { garage | vehicles = List.filter (\x -> x.license /= garage.formLicense) garage.vehicles }
     ToggleFilter f ->
       if List.member f garage.filters
       then { garage | filters = List.filter (\x -> x /= f) garage.filters }
       else { garage | filters = f::garage.filters }
+    SetFormLicense l ->
+      { garage | formLicense = l }
+    SetFormType t ->
+      { garage | formType = t }
 
 ----------------------------------------- VIEW
 
@@ -144,7 +149,11 @@ view : Signal.Address Action -> Garage -> Html.Html
 view address model =
   Html.div
     [ Html.Attributes.class "wrapper" ]
-    [ Html.div [ Html.Attributes.class "navbar" ] [ Html.text "Vehicles" ]
+    [ Html.div [ Html.Attributes.class "navbar" ]
+      [ Html.span [ Html.Attributes.class "icon" ]
+        [ Html.i [ Html.Attributes.class "fa fa-bars"] [] ]
+      , Html.span [ Html.Attributes.class "title" ] [ Html.text "Vehicles" ]
+      ]
     , Html.div [ Html.Attributes.class "sides" ]
         [ Html.div [ Html.Attributes.class "filtering" ] (viewFiltering address model)
         , Html.div [ Html.Attributes.class "listing" ] (viewListing address model)
@@ -162,16 +171,16 @@ viewFiltering address model =
         [ Html.i [ Html.Attributes.class "fa fa-search" ] [] ]
       , Html.input
         [ Html.Attributes.type' "search"
-        , Html.Events.on "change"
+        , Html.Events.on "keyup"
           (Json.at ["target", "value"] Json.string)
-          (\v -> Signal.message address (UpdateQuery v))
+          (Signal.message address << UpdateQuery)
         ]
         []
       ]
     ]
   , Html.div [ Html.Attributes.id "filters" ]
     [ Html.div [ Html.Attributes.class "filters" ]
-      [ Html.h4 [] [ Html.text "Level" ]
+      [ Html.h4 [] [ Html.text "Levels" ]
       ,Html.ul [] (List.map (filtersToLi address model) levels)
       ]
     , Html.div [ Html.Attributes.class "filters" ]
@@ -209,8 +218,8 @@ viewListing address model =
     let
       lowerBound = model.page * page_size + 1
       upperBound = min nbVehicles ((model.page + 1) * page_size)
-      classUp = if prevPossible nbVehicles page_size model.page then "icon enabled" else "icon"
-      classDown = if nextPossible nbVehicles page_size model.page then "icon enabled" else "icon"
+      classUp = if nextPossible nbVehicles page_size model.page then "icon enabled" else "icon"
+      classDown = if prevPossible nbVehicles page_size model.page then "icon enabled" else "icon"
     in
     [ Html.div [ Html.Attributes.class "pager" ]
       [ Html.div [ Html.Attributes.class "figures" ]
@@ -225,18 +234,18 @@ viewListing address model =
       , Html.div []
         [ Html.span
           [ Html.Attributes.class classUp
-          , Html.Events.onClick address PrevPage
+          , Html.Events.onClick address NextPage
           ]
           [ Html.i [ Html.Attributes.class "fa fa-angle-up" ] [] ]
         , Html.span
           [ Html.Attributes.class classDown
-          , Html.Events.onClick address NextPage
+          , Html.Events.onClick address PrevPage
           ]
           [ Html.i [ Html.Attributes.class "fa fa-angle-down" ] [] ]
         ]
       ]
     , Html.div [ Html.Attributes.class "vehicle_list" ]
-        (List.map vehicleToDiv vehicles)
+        (List.map vehicleToDiv (((List.take page_size) << (List.drop (lowerBound - 1))) vehicles))
     ]
 
 
@@ -260,7 +269,7 @@ vehicleToDiv vehicle =
       , Html.div [ Html.Attributes.class "col" ]
         [ Html.text level
         , Html.br [] []
-        , Html.text ("Slot: " ++ (toString vehicle.slot))
+        , Html.text ("Slot: " ++ (toString (vehicle.slot + 1)))
         ]
       ]
 
@@ -285,7 +294,63 @@ filterVehicles query filters vehicles =
 
 viewHandyUI : Signal.Address Action -> Garage -> List Html.Html
 viewHandyUI address model =
-  []
+  let
+    options = List.map
+      (\t -> let kind = case (Dict.get t filterNames) of
+          Just k -> k
+          Nothing -> "Unknown"
+        in Html.option [ Html.Attributes.value (toString t) ] [ Html.text kind ])
+      types
+    onChangeSelect = \x -> case (String.toInt x) of
+      Ok str -> SetFormType str
+      Err _ -> NoOp
+  in
+    [ Html.div []
+      [ Html.input
+        [ Html.Attributes.type' "text"
+        , Html.Attributes.placeholder "License"
+        , Html.Events.on
+            "keyup"
+            Html.Events.targetValue
+            (Signal.message address << SetFormLicense)
+        ]
+        []
+      , Html.select
+        [ Html.Events.on
+            "change"
+            Html.Events.targetValue
+            (Signal.message address << onChangeSelect)
+        ]
+        options
+      , Html.div
+        [ Html.Attributes.class "button enter"
+        , Html.Events.onClick address EnterVehicle
+        ]
+        [ Html.span [ Html.Attributes.class "icon" ]
+          [ Html.i [ Html.Attributes.class "fa fa-car" ] [] ]
+        , Html.span [] [ Html.text "Enter" ]
+        ]
+      , Html.div
+        [ Html.Attributes.class "button exit"
+        , Html.Events.onClick address ExitVehicle
+        ]
+        [ Html.span [ Html.Attributes.class "icon" ]
+          [ Html.i [ Html.Attributes.class "fa fa-sign-out" ] [] ]
+        , Html.span [] [ Html.text "Exit" ]
+        ]
+    ]
+  --, Html.div []
+  --  [ Html.div
+  --    [ Html.Attributes.class "button populate"
+  --    -- TODO onClick populate
+  --    ]
+  --    [ Html.span [ Html.Attributes.class "icon" ]
+  --      [ Html.i [ Html.Attributes.class "fa fa-magic" ] [] ]
+  --    , Html.span [] [ Html.text "Populate" ]
+  --    ]
+  --  ]
+  ]
+
 
 ----------------------------------------- WIRING
 
