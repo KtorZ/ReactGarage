@@ -1,30 +1,23 @@
 import Html
 import Html.Events
 import Html.Attributes
-import Json.Decode as Json exposing ((:=))
+import Json.Decode as Json
 import Regex
 import Dict
+import Set
 import String
 
 
 ----------------------------------------- CONFIG
 
 page_size: Int
-page_size = 10
-
-
-allPlaces : List (Int, Int)
-allPlaces =
-  List.foldr
-    (\places p -> List.append places p)
-    []
-    (List.indexedMap
-      (\lvl nb -> (List.indexedMap (\i _ -> (lvl, i)) (List.repeat nb 0)))
-      [1,2,3,2,1])
+page_size =
+  10
 
 
 filterNames : Dict.Dict Int String
-filterNames = Dict.fromList
+filterNames =
+  Dict.fromList
   [(0,"Level 0")
   ,(1,"Level 1")
   ,(2,"Level 2")
@@ -47,6 +40,17 @@ types =
   filterNames
     |> Dict.keys
     |> List.filter ((<=) 100)
+
+
+allPlaces : List (Int, Int)
+allPlaces =
+  List.foldr
+    (\places p -> List.append places p)
+    []
+    (List.indexedMap
+      (\lvl nb -> (List.indexedMap (\i _ -> (lvl, i)) (List.repeat nb 0)))
+      [1,2,3,2,1])
+
 
 ----------------------------------------- MODEL
 
@@ -122,16 +126,14 @@ update action garage =
     EnterVehicle ->
         if List.member garage.formLicense (List.map .license garage.vehicles)
         then garage
-        else let place = List.head garage.places in
+        else
+          let place = List.head garage.places in
           case place of
             Just (level, slot) ->
-              { garage
-              | places = List.drop 1 garage.places
-              , vehicles = (Vehicle garage.formLicense garage.formType slot level)::garage.vehicles
-              }
+              let vehicles = (Vehicle garage.formLicense garage.formType slot level)::garage.vehicles in
+              { garage | places = List.drop 1 garage.places, vehicles = vehicles }
             Nothing ->
               garage
-
     ExitVehicle ->
         { garage | vehicles = List.filter (\x -> x.license /= garage.formLicense) garage.vehicles }
     ToggleFilter f ->
@@ -282,16 +284,17 @@ vehicleToDiv vehicle =
 filterVehicles: String -> List Int -> List Vehicle -> List Vehicle
 filterVehicles query filters vehicles =
   let
-    filterTypes = List.partition ((>) 100) filters
+    activeLevels = Set.intersect (Set.fromList filters) (Set.fromList levels)
+    activeTypes = Set.intersect (Set.fromList filters) (Set.fromList types)
     filtSearch = (Regex.contains (Regex.regex query)) << .license
     filtLevel =
-      if List.length (fst filterTypes) == 0
+      if Set.size activeLevels == 0
       then \v -> True
-      else flip List.member (fst filterTypes) << .level
+      else flip Set.member activeLevels << .level
     filtKind =
-      if List.length (snd filterTypes) == 0
+      if Set.size activeTypes == 0
       then \v -> True
-      else flip List.member (snd filterTypes) << .kind
+      else flip Set.member activeTypes << .kind
   in
     List.foldr List.filter vehicles [filtSearch, filtLevel, filtKind]
 
@@ -300,12 +303,14 @@ filterVehicles query filters vehicles =
 viewHandyUI : Signal.Address Action -> Garage -> List Html.Html
 viewHandyUI address model =
   let
-    options = List.map
-      (\t -> let kind = case (Dict.get t filterNames) of
-          Just k -> k
-          Nothing -> "Unknown"
-        in Html.option [ Html.Attributes.value (toString t) ] [ Html.text kind ])
-      types
+    options =
+      let f =
+        \t -> let kind =
+          case (Dict.get t filterNames) of
+            Just k -> k
+            Nothing -> "Unknown"
+        in Html.option [ Html.Attributes.value (toString t) ] [ Html.text kind ]
+      in List.map f types
     onChangeSelect = \x -> case (String.toInt x) of
       Ok str -> SetFormType str
       Err _ -> NoOp
@@ -344,16 +349,6 @@ viewHandyUI address model =
         , Html.span [] [ Html.text "Exit" ]
         ]
     ]
-  --, Html.div []
-  --  [ Html.div
-  --    [ Html.Attributes.class "button populate"
-  --    -- TODO onClick populate
-  --    ]
-  --    [ Html.span [ Html.Attributes.class "icon" ]
-  --      [ Html.i [ Html.Attributes.class "fa fa-magic" ] [] ]
-  --    , Html.span [] [ Html.text "Populate" ]
-  --    ]
-  --  ]
   ]
 
 
